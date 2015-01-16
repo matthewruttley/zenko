@@ -1,3 +1,6 @@
+#!/usr/bin/python
+# -*- coding: utf8 -*-
+
 #Useful module for grabbing data from Amazon Redshift and manipulating it
 # - Most functions either have a docstring or are fairly self explanatory
 # - There's another module needed called login but that contains a password
@@ -17,6 +20,22 @@ def cursor():
 	"""Creates a cursor on the db for querying"""
 	conn = psycopg2.connect(login_string)
 	return conn.cursor()
+
+def get_client_list(cursor):
+	"""Gets a list of clients
+	Returns a list of dictionaries, each item looking like:
+	{
+		'name': 'CVS',
+		'id': 123
+	}"""
+	#get all tiles
+	tiles = get_all_tiles(cursor)
+	clients = {}
+	for tile in tiles:
+		if "/" not in tile[3]:
+			clients[tile[0]] = tile[3].decode('utf8') #there will be lots of duplicate client names
+	clients = sorted(set(clients.values()))
+	return clients
 
 def get_tables(cursor):
 	"""Gets a list of useful tables, ignores anything that looks too system-y"""
@@ -89,7 +108,6 @@ def get_column_headers(cursor, table_name):
 	"""Gets the column headings for a table"""
 	cursor.execute("select * from " + table_name + ";")
 	colnames = [desc[0] for desc in cursor.description]
-	colnames = cursor.fetchall()
 	return colnames
 
 def get_all_locales(cursor):
