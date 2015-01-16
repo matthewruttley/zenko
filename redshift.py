@@ -21,19 +21,33 @@ def cursor():
 	conn = psycopg2.connect(login_string)
 	return conn.cursor()
 
+def get_tile_locales(cursor, title):
+	"""Gets a list of locales that apply to a particular tile"""
+	tiles = search_tiles(cursor, title.lower())
+	locales = [x[-2] for x in tiles]
+	locales = sorted(list(set(locales)))
+	return locales
+
 def get_client_list(cursor):
-	"""Gets a list of clients
-	Returns a list of dictionaries, each item looking like:
-	{
-		'name': 'CVS',
-		'id': 123
-	}"""
+	"""Gets a list of clients"""
 	#get all tiles
 	tiles = get_all_tiles(cursor)
 	clients = {}
 	for tile in tiles:
 		if "/" not in tile[3]:
 			clients[tile[0]] = tile[3].decode('utf8') #there will be lots of duplicate client names
+	clients = sorted(set(clients.values()))
+	return clients
+
+def get_sponsored_client_list(cursor):
+	"""Gets a list of sponsored clients"""
+	#get all tiles
+	tiles = get_all_tiles(cursor)
+	clients = {}
+	for tile in tiles:
+		if tile[4] == "sponsored":
+			if "/" not in tile[3]:
+				clients[tile[0]] = tile[3].decode('utf8') #there will be lots of duplicate client names
 	clients = sorted(set(clients.values()))
 	return clients
 
@@ -77,6 +91,41 @@ def get_all_tiles(cursor):
 	tiles = cursor.fetchall()
 	return tiles
 
+def get_tile_stats(cursor, title, locale):
+	"""Gets stats for a few days"""
+	#<td>{{day.date}}</td>
+	#<td>{{day.impressions}}</td>
+	#<td>{{day.clicks}}</td>
+	#<td>{{day.ctr}}</td>
+	#<td>{{day.pins}}</td>
+	#<td>{{day.blocks}}</td>
+	days = []
+	query = """SELECT
+					date,
+					SUM(impressions) AS impressions,
+					SUM(clicks) as clicks,
+					SUM(pinned) as pins,
+					SUM(blocked) as blocks
+				FROM
+					impression_stats_daily
+				WHERE
+					tile_id = 647
+				GROUP BY date
+				ORDER BY date ASC;"""
+	cursor.execute(query)
+	for entry in cursor.fetchall():
+		day_dict = {
+			"date": entry[0],
+			"impressions": entry[1],
+			"clicks": entry[2],
+			"ctr": "?",
+			"pins": entry[3],
+			"blocks": entry[4],
+			
+		}
+		days.append(day_dict)
+	return days
+
 def search_tiles(cursor, search_term, locale=0, display=False):
 	"""Searches tiles and prints out relevant ones.
 	The search term will search both the client and target url
@@ -90,7 +139,7 @@ def search_tiles(cursor, search_term, locale=0, display=False):
 		headers = get_column_headers(cursor, "tiles")
 		print headers
 	for x in tiles:
-		if (search_term in x[3].lower()) or (search_term in x[1].lower()):
+		if (search_term in x[3].lower().decode('utf8')) or (search_term in x[1].lower().decode('utf8')):
 			if locale != 0:
 				if x[-2] == locale:
 					if display:
