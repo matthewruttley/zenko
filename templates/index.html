@@ -42,7 +42,7 @@
             <li><a href="/locales">Country Stats</a></li>
             <li><a href="/locales">Locale Stats</a></li>
             <li><a href="/locales">Tile Stats</a></li>
-            <li><a href="javascript:alert('Mo\'zilla Mo\'data?\nEmail matt: mruttley@mozilla.com')">Help</a></li>
+            <li><a href="javascript:alert('Mo\'zilla Mo\'data Mo'problems?\nEmail matt: mruttley@mozilla.com')">Help</a></li>
           </ul>
         </div>
       </div>
@@ -54,14 +54,14 @@
           <ul class="nav nav-sidebar">
             <!-- A list of all clients -->
             {% for client in clients %}
-            <li><a href="/tile/title/{{ client }}">{{ client }}</a></li>
+            <li><a href="/tile/{{ client }}">{{ client }}</a></li>
             {% endfor %}
           </ul>
         </div>
         
-        {% if title %}
+        {% if selection %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <h2 class="sub-header">Tile: {{title}}</h2>
+          <h2 class="sub-header">Tile: {{client}}</h2>
             <div class="row"> 
               <form role="form">
                 <div class="row">
@@ -70,7 +70,7 @@
                       Locale: 
                       <select class="form-control">
                           <option value="all">All</option>
-                        {% for locale in locales %}
+                        {% for locale in attributes.locales %}
                           <option value="{{locale}}">{{locale}}</option>
                         {% endfor %}
                       </select>
@@ -81,13 +81,13 @@
                       Country:
                       <select class="form-control">
                         <option value="all">All</option>
-                      {% for country in countries %}
+                      {% for country in attributes.countries %}
                         <option value="{{country}}">{{country}}</option>
                       {% endfor %}
                       </select>
                     </div>
                   </div>
-                  <div class="col-md-4 col-sm-4">
+                  <div class="col-md-4 col-sm-4" id='start_date'>
                     <div class="form-group">
                       Campaign start date: 
                       <select class="form-control">
