@@ -91,6 +91,80 @@ def get_all_tiles(cursor):
 	tiles = cursor.fetchall()
 	return tiles
 
+def get_countries_per_client(cursor, client_name):
+	
+	
+	"""Gets a list of countries that a particular tile ID ran in"""
+	
+	
+	query = """
+							SELECT DISTINCT
+								countries.country_name
+							FROM
+								tiles
+							INNER JOIN
+								impression_stats_daily ON tiles.id = impression_stats_daily.tile_id
+							INNER JOIN 
+								countries on countries.country_code = impression_stats_daily.country_code
+							WHERE
+								lower(tiles.title) LIKE '%dashlane%'
+								AND impression_stats_daily.blocked + impression_stats_daily.clicks + impression_stats_daily.impressions + impression_stats_daily.pinned > 0
+							ORDER BY countries.country_name ASC;
+	""".format(client_name)
+	
+	cursor.execute(query)
+	countries = cursor.fetchall()
+	
+	return countries
+
+def get_locales_per_tile_id(cursor, tile_id):
+	"""Gets a list of locales that a particular tile ID ran in"""
+	query = """
+				SELECT DISTINCT
+					locale
+				FROM
+					tiles
+				WHERE
+					id = {0};
+	""".format(tile_id)
+	
+	cursor.execute(query)
+	locales = cursor.fetchall()
+	
+	return locales
+
+def get_start_dates_per_tile_id(cursor, tile_id):
+	"""Gets a list of campaign start dates that a particular tile ID ran in"""
+	query = """
+				SELECT
+					created_at
+				FROM
+					tiles
+				WHERE
+					id = {0};
+	""".format(tile_id)
+	
+	cursor.execute(query)
+	start_dates = cursor.fetchall()
+	
+	return locales
+
+def get_tile_attributes(cursor, tile_id):
+	"""For a given tile id, gets all possible locales, countries and campaign start dates.
+	This is useful for the drop down menus.
+	Accepts an integer tile id and returns a dictionary of lists"""
+	
+	attributes = {
+		'locales': [],
+		'countries': [],
+		'start_dates': []
+	}
+	
+	attributes['countries'] = get_countries_per_client(cursor, tile_id)
+	attributes['locales'] = get_locales_per_tile_id(cursor, tile_id)
+	
+	return attributes
+
 def get_tile_stats(cursor, title, locale):
 	"""Gets stats for a few days"""
 	#<td>{{day.date}}</td>
