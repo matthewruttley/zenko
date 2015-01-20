@@ -6,7 +6,7 @@
 
 from webbrowser import open as open_webpage
 from flask import Flask, render_template
-from redshift import get_sponsored_client_list, cursor, get_tile_locales, get_tile_stats
+from redshift import get_sponsored_client_list, cursor, get_tile_attributes
 app = Flask(__name__)
 
 #set up database connection
@@ -21,35 +21,35 @@ cursor = cursor()
 #	locales = get_tile_locales(cursor, title)
 #	#render the template
 #	return render_template("index.html", clients=clients, title=title, locales=locales)
-
-@app.route('/tile/<client>/<locale>/<country>/<start_date>')
-def show_specific_tile_locale(title, locale):
-	"""Grab specific tile data"""
-	
-	#get a list of clients for the side bar
-	clients = get_sponsored_client_list(cursor)
-	
-	#get a list of possible locales, countries and start dates for these tiles
-	attributes = get_tile_attributes(cursor, tile_id)
-	
-	#get some tile data
-	stats = get_tile_stats(cursor, title, locale)
-	
-	#render the template
-	return render_template("index.html", clients=clients, attributes=attributes)
+#
+#@app.route('/tile/<client>/<locale>/<country>/<start_date>')
+#def show_specific_tile_locale(title, locale):
+#	"""Grab specific tile data"""
+#	
+#	#get a list of clients for the side bar
+#	clients = get_sponsored_client_list(cursor)
+#	
+#	#get a list of possible locales, countries and start dates for these tiles
+#	attributes = get_tile_attributes(cursor, tile_id)
+#	
+#	#get some tile data
+#	stats = get_tile_stats(cursor, title, locale)
+#	
+#	#render the template
+#	return render_template("index.html", clients=clients, attributes=attributes)
 
 @app.route('/tile/<client>')
-def show_selection_page(title, locale):
+def show_selection_page(client):
 	"""Shows a page that lets users select the specific locale and country"""
 	
 	#get a list of clients for the side bar
 	clients = get_sponsored_client_list(cursor)
 	
 	#get a list of possible locales and countries
-	attributes = get_tile_attributes(cursor, tile_id)
+	attributes = get_tile_attributes(cursor, client)
 	
 	#render the template
-	return render_template("index.html", clients=clients, attributes=attributes)
+	return render_template("index.html", clients=clients, attributes=attributes, selection=True, client=client)
 
 @app.route('/')
 def show_main_page():

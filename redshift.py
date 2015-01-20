@@ -21,11 +21,13 @@ def cursor():
 	conn = psycopg2.connect(login_string)
 	return conn.cursor()
 
-def get_tile_locales(cursor, title):
+def get_locales_per_client(cursor, client):
 	"""Gets a list of locales that apply to a particular tile"""
-	tiles = search_tiles(cursor, title.lower())
-	locales = [x[-2] for x in tiles]
-	locales = sorted(list(set(locales)))
+	client = client.lower().encode()
+	query = "SELECT DISTINCT locale FROM tiles WHERE lower(title) LIKE '%{0}%';".format(client)
+	cursor.execute(query)
+	locales = cursor.fetchall()
+	locales = [x[0] for x in locales]
 	return locales
 
 def get_client_list(cursor):
@@ -92,10 +94,7 @@ def get_all_tiles(cursor):
 	return tiles
 
 def get_countries_per_client(cursor, client_name):
-	
-	
 	"""Gets a list of countries that a particular tile ID ran in"""
-	
 	
 	query = """
 							SELECT DISTINCT
@@ -114,6 +113,7 @@ def get_countries_per_client(cursor, client_name):
 	
 	cursor.execute(query)
 	countries = cursor.fetchall()
+	countries = [x[0] for x in countries] #query returns a list of lists so have to break out of that
 	
 	return countries
 
@@ -149,7 +149,7 @@ def get_start_dates_per_tile_id(cursor, tile_id):
 	
 	return locales
 
-def get_tile_attributes(cursor, tile_id):
+def get_tile_attributes(cursor, client):
 	"""For a given tile id, gets all possible locales, countries and campaign start dates.
 	This is useful for the drop down menus.
 	Accepts an integer tile id and returns a dictionary of lists"""
@@ -157,11 +157,10 @@ def get_tile_attributes(cursor, tile_id):
 	attributes = {
 		'locales': [],
 		'countries': [],
-		'start_dates': []
 	}
 	
-	attributes['countries'] = get_countries_per_client(cursor, tile_id)
-	attributes['locales'] = get_locales_per_tile_id(cursor, tile_id)
+	attributes['countries'] = get_countries_per_client(cursor, client)
+	attributes['locales'] = get_locales_per_client(cursor, client)
 	
 	return attributes
 
