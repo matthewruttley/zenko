@@ -53,6 +53,23 @@ def get_sponsored_client_list(cursor):
 	clients = sorted(set(clients.values()))
 	return clients
 
+def get_tiles_from_client_in_locale(cursor, client, locale):
+	"""Gets a list of tiles that run in a particular locale for a particular client"""
+	query = """
+				SELECT
+					id, target_url, created_at
+				FROM
+					tiles
+				WHERE
+					lower(title) like '%{0}%'
+				and locale = '{1}'
+				ORDER BY
+					created_at DESC;
+	""".format(client.lower(), locale)
+	cursor.execute(query)
+	tiles = cursor.fetchall()
+	return tiles
+
 def get_tables(cursor):
 	"""Gets a list of useful tables, ignores anything that looks too system-y"""
 	ignore = "|".join([

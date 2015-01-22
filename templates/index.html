@@ -9,7 +9,7 @@
     <meta name="author" content="Matthew Ruttley - mruttley@mozilla.com">
     <link rel="icon" href="static/img/favicon.ico">
 
-    <title>Dashboard Template for Bootstrap</title>
+    <title>Zenko</title>
 
     <!-- Bootstrap core CSS -->
     <link href="/static/css/bootstrap.min.css" rel="stylesheet">
@@ -61,15 +61,14 @@
         
         {% if selection %}
         <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
-          <h2 class="sub-header">Tile: {{client}}</h2>
+          <h2 class="sub-header">Tile: <span id='tile_name'>{{client}}</span></h2>
             <div class="row"> 
               <form role="form">
                 <div class="row">
-                  <div class="col-md-1 col-sm-1">
+                  <div class="col-md-2 col-sm-2">
                     <div class="form-group">
-                      Locale: 
-                      <select class="form-control">
-                          <option value="all">All</option>
+                      <select class="form-control" id='locales'>
+                          <option value="all">All Locales</option>
                         {% for locale in attributes.locales %}
                           <option value="{{locale}}">{{locale}}</option>
                         {% endfor %}
@@ -78,30 +77,48 @@
                   </div>
                   <div class="col-md-2 col-sm-2">
                     <div class="form-group">
-                      Country:
-                      <select class="form-control">
-                        <option value="all">All</option>
+                      <select class="form-control" id='countries'>
+                        <option value="all">All Countries</option>
                       {% for country in attributes.countries %}
                         <option value="{{country}}">{{country}}</option>
                       {% endfor %}
                       </select>
                     </div>
                   </div>
-                  <div class="col-md-4 col-sm-4" id='start_date'>
+                  <div class="col-md-2 col-sm-2">
                     <div class="form-group">
-                      Campaign start date: 
-                      <select class="form-control">
-                          <option value="most_recent">Most recent</option>
-                        {% for campaign in campaigns %}
-                          <option value="{{locale}}">{{locale}}</option>
-                        {% endfor %}
-                      </select>
+                      <button class='btn btn-primary' id='filter_creative' onclick='get_creative()'>Filter</button>
                     </div>
                   </div>
                 </div>
               </form>
             </div>
-            
+          
+          <div class="table-responsive">
+            <table class='table table-striped table-hover'>
+              <thead>
+                <th>#</th>
+                <th>Tile ID</th>
+                <th>Target URL</th>
+                <th>Campaign Start Date</th>
+              </thead>
+              <tbody>
+                {% for tile in creative %}
+                <tr>
+                  <td>{{loop.index}}</td>
+                  {% for attribute in tile %}
+                  {% if loop.index == 0 %}
+                  
+                  {% else %}
+                  <td>{{attribute}}</td>
+                  {% endif %}
+                  {% endfor %}
+                </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+          
           <hr>
           <div class="table-responsive">
             <table class="table table-striped">
@@ -146,5 +163,6 @@
     <script src="/static/js/docs.min.js"></script>
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
+    <script src="/static/js/functionality.js"></script>
   </body>
 </html>

@@ -6,7 +6,7 @@
 
 from webbrowser import open as open_webpage
 from flask import Flask, render_template
-from redshift import get_sponsored_client_list, cursor, get_tile_attributes
+from redshift import get_sponsored_client_list, cursor, get_tile_attributes, get_tiles_from_client_in_locale
 app = Flask(__name__)
 
 #set up database connection
@@ -38,8 +38,24 @@ cursor = cursor()
 #	#render the template
 #	return render_template("index.html", clients=clients, attributes=attributes)
 
+@app.route('/tile/<client>/<locale>')
+def show_creative_selection_page(client, locale):
+	"""Shows a page that lets users select the specific creative"""
+	
+	#get a list of clients for the side bar
+	clients = get_sponsored_client_list(cursor)
+	
+	#get a list of possible locales and countries
+	attributes = get_tile_attributes(cursor, client)
+	
+	#get a list of all the tiles in that locale
+	tiles = get_tiles_from_client_in_locale(cursor, client, locale)
+	
+	#render the template
+	return render_template("index.html", clients=clients, attributes=attributes, selection=True, client=client, creative=tiles)
+
 @app.route('/tile/<client>')
-def show_selection_page(client):
+def show_locale_selection_page(client):
 	"""Shows a page that lets users select the specific locale and country"""
 	
 	#get a list of clients for the side bar
