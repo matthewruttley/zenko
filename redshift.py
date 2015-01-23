@@ -53,6 +53,37 @@ def get_sponsored_client_list(cursor):
 	clients = sorted(set(clients.values()))
 	return clients
 
+def get_impressions(cursor, timeframe, tile_id):
+	"""Gets and aggregates impressions in a certain time frame"""
+	query = """
+		SELECT
+			date,
+			SUM(impressions) as impressions,
+			SUM(clicks) as clicks,
+			SUM(pinned) as pinned,
+			SUM(blocked) as blocked
+		FROM 
+			impression_stats_daily
+		WHERE
+			tile_id = 647
+		GROUP BY date
+		ORDER BY date ASC;
+	"""
+	cursor.execute(query)
+	impressions = cursor.fetchall()
+	return impressions
+
+def get_tile_meta_data(cursor, tile_id):
+	query = """
+				SELECT * FROM tiles WHERE id = {0};
+	""".format(tile_id)
+	cursor.execute(query)
+	metadata = cursor.fetchall()
+	colnames = [desc[0] for desc in cursor.description]
+	#now make a nice table with attr --> vaulue
+	metadata_table = zip(colnames, metadata[0])
+	return metadata_table
+
 def get_tiles_from_client_in_locale(cursor, client, locale):
 	"""Gets a list of tiles that run in a particular locale for a particular client"""
 	query = """
@@ -245,7 +276,7 @@ def search_tiles(cursor, search_term, locale=0, display=False):
 
 def get_column_headers(cursor, table_name):
 	"""Gets the column headings for a table"""
-	cursor.execute("select * from " + table_name + ";")
+	cursor.execute("select * from " + table_name + " LIMIT 1;")
 	colnames = [desc[0] for desc in cursor.description]
 	return colnames
 
