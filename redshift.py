@@ -13,139 +13,48 @@
 # ...(prints out lots of stuff)
 
 from collections import defaultdict
+from os import path
+from json import load, dump
+from datetime import datetime
+from codecs import open as copen
 import psycopg2
 from login import login_string #login details, not committed
+
+############# Basic caching and setup ##################
 
 def cursor():
 	"""Creates a cursor on the db for querying"""
 	conn = psycopg2.connect(login_string)
 	return conn.cursor()
 
-def get_locales_per_client(cursor, client):
-	"""Gets a list of locales that apply to a particular tile"""
-	client = client.lower().encode()
-	query = "SELECT DISTINCT locale FROM tiles WHERE lower(title) LIKE '%{0}%';".format(client)
-	cursor.execute(query)
-	locales = cursor.fetchall()
-	locales = [x[0] for x in locales]
-	return locales
-
-def get_client_list(cursor):
-	"""Gets a list of clients"""
-	#get all tiles
-	tiles = get_all_tiles(cursor)
-	clients = {}
-	for tile in tiles:
-		if "/" not in tile[3]:
-			clients[tile[0]] = tile[3].decode('utf8') #there will be lots of duplicate client names
-	clients = sorted(set(clients.values()))
-	return clients
-
-def get_sponsored_client_list(cursor):
-	"""Gets a list of sponsored clients"""
-	#get all tiles
-	tiles = get_all_tiles(cursor)
-	clients = {}
-	for tile in tiles:
-		if tile[4] == "sponsored":
-			if "/" not in tile[3]:
-				clients[tile[0]] = tile[3].decode('utf8') #there will be lots of duplicate client names
-	clients = sorted(set(clients.values()))
-	return clients
-
-def get_impressions(cursor, timeframe, tile_id):
-	"""Gets and aggregates impressions in a certain time frame"""
-	query = """
-		SELECT
-			date,
-			SUM(impressions) as impressions,
-			SUM(clicks) as clicks,
-			SUM(pinned) as pinned,
-			SUM(blocked) as blocked
-		FROM 
-			impression_stats_daily
-		WHERE
-			tile_id = 647
-		GROUP BY date
-		ORDER BY date ASC;
-	"""
-	cursor.execute(query)
-	impressions = cursor.fetchall()
-	return impressions
-
-def get_tile_meta_data(cursor, tile_id):
-	query = """
-				SELECT * FROM tiles WHERE id = {0};
-	""".format(tile_id)
-	cursor.execute(query)
-	metadata = cursor.fetchall()
-	colnames = [desc[0] for desc in cursor.description]
-	#now make a nice table with attr --> vaulue
-	metadata_table = zip(colnames, metadata[0])
-	return metadata_table
-
-def get_tiles_from_client_in_locale(cursor, client, locale):
-	"""Gets a list of tiles that run in a particular locale for a particular client"""
-	query = """
-				SELECT
-					id, target_url, created_at
-				FROM
-					tiles
-				WHERE
-					lower(title) like '%{0}%'
-				and locale = '{1}'
-				ORDER BY
-					created_at DESC;
-	""".format(client.lower(), locale)
-	cursor.execute(query)
-	tiles = cursor.fetchall()
-	return tiles
-
-def get_tables(cursor):
-	"""Gets a list of useful tables, ignores anything that looks too system-y"""
-	ignore = "|".join([
-			"pg_",
-			"sql_",
-			"stl_",
-			"stv_",
-			"temp_",
-			"svl_",
-			"svv_",
-			"table_",
-			"systable_",
-			"role_",
-			"column_",
-			"applicable_",
-			"view_",
-			"loadview",
-			"enabled",
-			"padb",
-			"usage",
-			"check_c",
-			"constraint",
-			"triggered",
-			"distributions",
-			"key_column",
-			"referential_",
-			"information_schema_catalog_name"
-		])
-	cursor.execute("select relname from pg_class where relname !~ '^(" + ignore + ")';")
-	table_list = cursor.fetchall()
-	table_list = [x[0] for x in table_list] #cleanup
-	#sort and return
-	return sorted(table_list)
-
-def get_all_tiles(cursor):
-	"""Gets a list of all the tiles currently on the server"""
-	cursor.execute("select * from tiles;")
-	tiles = cursor.fetchall()
-	return tiles
-
-def get_countries_per_client(cursor, client_name):
-	"""Gets a list of countries that a particular tile ID ran in"""
+def build_tiles_cache(cursor):
+	"""Saves a version of the tiles as JSON to the local directory. Only does this once every 24 hours"""
 	
-	query = """
+	#check if it actually needs updating
+	redownload = False
+	try:
+		if not path.isfile("tiles.cache"):
+			redownload = True #does it even exist
+		else:
+			with copen("tiles.cache", 'r', 'utf8') as f:
+				cache = load(f)          #get the timestamp and convert to datetime
+				last_updated = datetime.strptime(cache['last_updated'], "%Y-%m-%d %H:%M:%S.%f") 
+				if (datetime.now()-last_updated).days > 0:
+					redownload = True
+	except Exception: #yolo
+		redownload = True
+	
+	if redownload:
+		print "Refreshing tiles cache from remote server (will take ~2 seconds)..."
+		#get the tiles
+		cursor.execute("SELECT * FROM tiles;")
+		tiles = cursor.fetchall()
+		#get the countries
+		print "done"
+		print "Refreshing tile country cache from remote server (will take ~15 seconds)..."
+		cursor.execute("""
 							SELECT DISTINCT
+								tiles.id,
 								countries.country_name
 							FROM
 								tiles
@@ -154,50 +63,91 @@ def get_countries_per_client(cursor, client_name):
 							INNER JOIN 
 								countries on countries.country_code = impression_stats_daily.country_code
 							WHERE
-								lower(tiles.title) LIKE '%dashlane%'
+								tiles.type = 'sponsored'
+								AND tiles.title not like '%/%'
 								AND impression_stats_daily.blocked + impression_stats_daily.clicks + impression_stats_daily.impressions + impression_stats_daily.pinned > 0
-							ORDER BY countries.country_name ASC;
-	""".format(client_name)
+							ORDER BY countries.country_name ASC;""")
+		tile_countries = defaultdict(set)
+		for tile, country in cursor.fetchall():
+			tile_countries[tile].update([country])
+		#now insert into a dictionary object that will be nicely serializeable
+		cache = {}
+		for tile in tiles:
+			cache[tile[0]] = {
+				'target_url': tile[1],
+				'bg_color': tile[2],
+				'title': tile[3],
+				'type': tile[4],
+				'image_uri': tile[5],
+				'enhanced_image_uri': tile[6],
+				'locale': tile[7],
+				'created_at': unicode(tile[8]),
+				'countries': sorted(list(tile_countries[tile[0]])) if tile[0] in tile_countries else []
+			}
+		cache['last_updated'] = unicode(datetime.now())
+		with copen('tiles.cache', 'w', 'utf8') as f:
+			dump(cache, f)
+		print "done"
+	else:
+		print "Loaded tiles cache..."
 	
-	cursor.execute(query)
-	countries = cursor.fetchall()
-	countries = [x[0] for x in countries] #query returns a list of lists so have to break out of that
-	
-	return countries
+	del cache['last_updated'] #not useful when querying
+	return cache
 
-def get_locales_per_tile_id(cursor, tile_id):
-	"""Gets a list of locales that a particular tile ID ran in"""
-	query = """
-				SELECT DISTINCT
-					locale
-				FROM
-					tiles
-				WHERE
-					id = {0};
-	""".format(tile_id)
-	
-	cursor.execute(query)
-	locales = cursor.fetchall()
-	
+######### Querying client data ###########
+
+def get_all_locales(cache):
+	"""Gets a list of all locales and prints them out to the terminal"""
+	locales = sorted(list(set([x['locale'] for x in cache.itervalues()])))
 	return locales
 
-def get_start_dates_per_tile_id(cursor, tile_id):
-	"""Gets a list of campaign start dates that a particular tile ID ran in"""
-	query = """
-				SELECT
-					created_at
-				FROM
-					tiles
-				WHERE
-					id = {0};
-	""".format(tile_id)
-	
-	cursor.execute(query)
-	start_dates = cursor.fetchall()
-	
+def get_locales_per_client(cache, client):
+	"""Gets a list of locales that apply to a particular tile"""
+	locales = set()
+	for tile in cache.itervalues():
+		if client in tile['title']:
+			locales.update([tile['locale']])
 	return locales
 
-def get_tile_attributes(cursor, client):
+def get_sponsored_client_list(cache):
+	"""Gets a list of clients"""
+	#get all tiles
+	clients = set()
+	for x in cache.itervalues():
+		if x['type'] == "sponsored":
+			if "/" not in x['title']:
+				clients.update([x['title']])
+	return sorted(list(clients))
+
+def get_tile_meta_data(cache, tile_id):
+	metadata_table = sorted([list(x) for x in cache[tile_id].items()])
+	metadata_table[1][1] = len(metadata_table[1][1]) #collapse countries
+	metadata_table.insert(0, ["id", tile_id]) #insert id
+	return metadata_table
+
+def get_tiles_from_client_in_locale(cache, client, locale):
+	"""Gets a list of tiles that run in a particular locale for a particular client"""
+	tiles = []
+	for tile_id, tile in cache.iteritems():
+		if client in tile['title']:
+			if locale == tile['locale']:
+				tile['id'] = tile_id
+				tiles.append(tile)
+	return tiles
+
+def get_countries_per_client(cache, client):
+	"""Gets a list of countries that a particular tile ID ran in"""
+	countries = set()
+	for x in cache.itervalues():
+		if client in x['title']:
+			countries.update(x['countries'])
+	return sorted(countries)
+
+def get_countries_per_tile(cache, tile_id):
+	"""Given a tile id it returns the country list"""
+	return cache[tile_id]['countries']
+
+def get_client_attributes(cursor, cache, client):
 	"""For a given tile id, gets all possible locales, countries and campaign start dates.
 	This is useful for the drop down menus.
 	Accepts an integer tile id and returns a dictionary of lists"""
@@ -207,72 +157,46 @@ def get_tile_attributes(cursor, client):
 		'countries': [],
 	}
 	
-	attributes['countries'] = get_countries_per_client(cursor, client)
-	attributes['locales'] = get_locales_per_client(cursor, client)
+	attributes['countries'] = get_countries_per_client(cache, client)
+	attributes['locales'] = get_locales_per_client(cache, client)
 	
 	return attributes
 
-def get_tile_stats(cursor, title, locale):
-	"""Gets stats for a few days"""
-	#<td>{{day.date}}</td>
-	#<td>{{day.impressions}}</td>
-	#<td>{{day.clicks}}</td>
-	#<td>{{day.ctr}}</td>
-	#<td>{{day.pins}}</td>
-	#<td>{{day.blocks}}</td>
-	days = []
-	query = """SELECT
-					date,
-					SUM(impressions) AS impressions,
-					SUM(clicks) as clicks,
-					SUM(pinned) as pins,
-					SUM(blocked) as blocks
-				FROM
-					impression_stats_daily
-				WHERE
-					tile_id = 647
-				GROUP BY date
-				ORDER BY date ASC;"""
-	cursor.execute(query)
-	for entry in cursor.fetchall():
-		day_dict = {
-			"date": entry[0],
-			"impressions": entry[1],
-			"clicks": entry[2],
-			"ctr": "?",
-			"pins": entry[3],
-			"blocks": entry[4],
-			
-		}
-		days.append(day_dict)
-	return days
+########## Querying impressions data ###########
 
-def search_tiles(cursor, search_term, locale=0, display=False):
-	"""Searches tiles and prints out relevant ones.
-	The search term will search both the client and target url
-	The locale is by default 0 (everything) or can be set optionally
-	(use get_all_locales for a list of them)
-	If display is set to True then it will print the results to
-	the terminal, otherwise it will return a list. """
-	tiles = get_all_tiles(cursor)
-	to_return = []
-	if display:
-		headers = get_column_headers(cursor, "tiles")
-		print headers
-	for x in tiles:
-		if (search_term in x[3].lower().decode('utf8')) or (search_term in x[1].lower().decode('utf8')):
-			if locale != 0:
-				if x[-2] == locale:
-					if display:
-						print x
-					else:
-						to_return.append(x)
-			else:	
-				if display:
-					print x
-				else:
-					to_return.append(x)
-	if not display: return to_return
+def get_impressions(cursor, timeframe, tile_id, country="all"):
+	"""Gets and aggregates impressions in a certain time frame"""
+	
+	all_countries = """SELECT date, SUM(impressions) as impressions, SUM(clicks) as clicks, SUM(pinned) as pinned, SUM(blocked) as blocked
+						FROM impression_stats_daily
+						WHERE tile_id = {0}
+						GROUP BY date
+						ORDER BY date ASC;
+	""".format(tile_id)
+	
+	specific_country = """SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pinned, SUM (blocked) AS blocked
+						FROM impression_stats_daily
+						INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+						WHERE tile_id = {0}
+						AND countries.country_name = '{1}'
+						GROUP BY impression_stats_daily.date, countries.country_name
+						ORDER BY impression_stats_daily.date ASC;""".format(tile_id, country)
+	
+	if country == 'all':
+		cursor.execute(all_countries)
+	else:
+		cursor.execute(specific_country)
+	
+	data = cursor.fetchall()
+	impressions = []
+	#insert CTR and convert to lists
+	for day in data:
+		day = list(day)
+		ctr = round((day[2] / float(day[1])) * 100, 5)
+		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
+	return impressions
+
+######### Other meta-data #########
 
 def get_column_headers(cursor, table_name):
 	"""Gets the column headings for a table"""
@@ -280,20 +204,10 @@ def get_column_headers(cursor, table_name):
 	colnames = [desc[0] for desc in cursor.description]
 	return colnames
 
-def get_all_locales(cursor):
-	"""Gets a list of all locales and prints them out to the terminal"""
-	tiles = get_all_tiles(cursor)
-	locales = defaultdict(int)
-	for x in tiles:
-		locales[x[-2]] += 1
-	locales = sorted(locales.items(), key=lambda x: x[1], reverse=True)
-	for x in locales:
-		print x
-
 def get_row_count(cursor, table_name):
 	"""Gets the row count for a specific table.
 	Will be slow for big tables"""
 	print "Counting... (may take a while)"
-	cursor.execute("SELECT COUNT(*) FROM " + table_name)
+	cursor.execute("SELECT COUNT(*) FROM " + table_name + ";")
 	return cursor.fetchall()
 	

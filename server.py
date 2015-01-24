@@ -6,82 +6,79 @@
 
 from webbrowser import open as open_webpage
 from flask import Flask, render_template
-from redshift import get_sponsored_client_list, cursor, get_tile_attributes, get_tiles_from_client_in_locale, get_impressions, get_tile_meta_data
+import redshift
 app = Flask(__name__)
 
 #set up database connection
-cursor = cursor()
+cursor = redshift.cursor()
+cache = redshift.build_tiles_cache(cursor)
 
-#@app.route('/tile/title/<title>')
-#def show_specific_tile(title):
-#	"""A page to show a specific tile's performance"""
-#	#get a list of clients for the side bar
-#	clients = get_sponsored_client_list(cursor)
-#	#get a list of possible locales for these tiles
-#	locales = get_tile_locales(cursor, title)
-#	#render the template
-#	return render_template("index.html", clients=clients, title=title, locales=locales)
-#
-#@app.route('/tile/<client>/<locale>/<country>/<start_date>')
-#def show_specific_tile_locale(title, locale):
-#	"""Grab specific tile data"""
-#	
-#	#get a list of clients for the side bar
-#	clients = get_sponsored_client_list(cursor)
-#	
-#	#get a list of possible locales, countries and start dates for these tiles
-#	attributes = get_tile_attributes(cursor, tile_id)
-#	
-#	#get some tile data
-#	stats = get_tile_stats(cursor, title, locale)
-#	
-#	#render the template
-#	return render_template("index.html", clients=clients, attributes=attributes)
 
 @app.route('/impressions/<tile_id>')
 def show_impressions(tile_id):
 	"""Shows impressions for a tile_id"""
 	
 	#get a list of clients for the side bar
-	clients = get_sponsored_client_list(cursor)
+	clients = redshift.get_sponsored_client_list(cache)
 	
 	#get a list of possible locales and countries
-	#attributes = get_tile_attributes(cursor, client)
+	countries = redshift.get_countries_per_tile(cache, tile_id)
 	
 	#get some daily data for the last week
-	impressions_data = get_impressions(cursor, "week", tile_id)
+	impressions_data = redshift.get_impressions(cursor, "week", tile_id)
 	
 	#get some meta data about the tile from the tiles database
-	meta_data = get_tile_meta_data(cursor, tile_id)
+	meta_data = redshift.get_tile_meta_data(cache, tile_id)
+	client = "{0} [{1}]".format([x[1] for x in meta_data if x[0] == 'title'][0], tile_id)
 	
 	#render the template
-	return render_template("index.html", clients=clients, meta_data=meta_data, impressions_data=impressions_data) #attributes=attributes, client=client, 
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data)
+
+@app.route('/impressions/<tile_id>/<country>')
+def show_country_impressions(tile_id, country):
+	"""Shows impressions for a tile_id"""
+	
+	#get a list of clients for the side bar
+	clients = redshift.get_sponsored_client_list(cache)
+	
+	#get a list of possible locales and countries
+	countries = redshift.get_countries_per_tile(cache, tile_id)
+	
+	#get some daily data for the last week
+	impressions_data = redshift.get_impressions(cursor, "week", tile_id, country=country)
+	
+	#get some meta data about the tile from the tiles database
+	meta_data = redshift.get_tile_meta_data(cache, tile_id)
+	client = "{0} [{1}]".format([x[1] for x in meta_data if x[0] == 'title'][0], tile_id)
+	
+	#render the template
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country)
 
 @app.route('/tile/<client>/<locale>')
 def show_creative_selection_page(client, locale):
 	"""Shows a page that lets users select the specific creative"""
 	
 	#get a list of clients for the side bar
-	clients = get_sponsored_client_list(cursor)
+	clients = redshift.get_sponsored_client_list(cache)
 	
 	#get a list of possible locales and countries
-	attributes = get_tile_attributes(cursor, client)
+	attributes = redshift.get_client_attributes(cursor, cache, client)
 	
 	#get a list of all the tiles in that locale
-	tiles = get_tiles_from_client_in_locale(cursor, client, locale)
+	tiles = redshift.get_tiles_from_client_in_locale(cache, client, locale)
 	
 	#render the template
-	return render_template("index.html", clients=clients, attributes=attributes, client=client, creative=tiles)
+	return render_template("index.html", clients=clients, attributes=attributes, client=client, creative=tiles, locale=locale)
 
 @app.route('/tile/<client>')
 def show_locale_selection_page(client):
 	"""Shows a page that lets users select the specific locale and country"""
 	
 	#get a list of clients for the side bar
-	clients = get_sponsored_client_list(cursor)
+	clients = redshift.get_sponsored_client_list(cache)
 	
 	#get a list of possible locales and countries
-	attributes = get_tile_attributes(cursor, client)
+	attributes = redshift.get_client_attributes(cursor, cache, client)
 	
 	#render the template
 	return render_template("index.html", clients=clients, attributes=attributes, client=client)
@@ -89,11 +86,15 @@ def show_locale_selection_page(client):
 @app.route('/')
 def show_main_page():
 	#get a list of clients for the side bar
-	clients = get_sponsored_client_list(cursor)
+	clients = redshift.get_sponsored_client_list(cache)
 	#render the template
-	return render_template("index.html", clients=clients)
+	return render_template("index.html", clients=clients, main_page=True)
 
 if __name__ == '__main__':
 	app.debug = True
 	#open_webpage("http://localhost:5000/")
 	app.run()
+
+
+
+
