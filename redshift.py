@@ -187,7 +187,7 @@ def get_impressions(cursor, timeframe, tile_id, country="all"):
 	#insert CTR and convert to lists
 	for day in data:
 		day = list(day)
-		ctr = round((day[2] / float(day[1])) * 100, 5)
+		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
 	return impressions
 
@@ -220,7 +220,7 @@ def get_countries_impressions_data(cursor, tile_id, start_date=0, end_date=0):
 	impressions = []
 	for day in data:
 		day = list(day)
-		ctr = round((day[2] / float(day[1])) * 100, 5)
+		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
 	return impressions
 
