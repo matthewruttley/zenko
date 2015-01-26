@@ -5,12 +5,7 @@
 # - Most functions either have a docstring or are fairly self explanatory
 # - There's another module needed called login but that contains a password
 #	so isn't listed here.
-# - All functions require a cursor to be set up beforehand
-# - Typical way to use this:
-# > import redshift
-# > cursor = redshift.cursor()
-# > redshift.search_tiles(cursor, "youtube", 0, True)
-# ...(prints out lots of stuff)
+# - All functions require a cursor and/or cache to be set up beforehand
 
 from collections import defaultdict
 from os import path
