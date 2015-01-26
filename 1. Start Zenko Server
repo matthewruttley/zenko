@@ -1,0 +1,3 @@
+cd ~/Documents/zenko
+git pull
+python server.py
