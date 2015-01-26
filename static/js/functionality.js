@@ -14,3 +14,13 @@ function filter_creative_by_country() {
 	var country = document.getElementById('countries').value
 	location.href = "/impressions/" + tile_id + "/" + country
 }
+
+function filter_impressions_by_date(){
+	// Filters impressions using the date slider
+	
+	start_date = 0
+	end_date = 0
+	
+	
+	
+}

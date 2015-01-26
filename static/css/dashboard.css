@@ -107,3 +107,8 @@ body {
 #countries {
   text-align: center;
 }
+
+#filter_dates {
+  position: absolute;
+  top: 59px;
+}

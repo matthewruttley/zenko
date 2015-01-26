@@ -186,10 +186,16 @@
             <ul class="nav nav-tabs">
               <li role="presentation"><a href="/impressions/{{tile_id}}">Day-by-day</a></li>
               <li role="presentation" class="active"><a href="/countries_impressions/{{tile_id}}">Country-by-country</a></li>
-            </ul>
-            <div class="col-md-9 col-md-offset-1 col-sm-6">
+            </ul> 
+            <div class="col-md-8 col-md-offset-1 col-sm-5">
               <br>
               <div id="slider"></div>
+            </div>
+            <div class="col-md-1 col-sm-1">
+              <br>
+              <div class="form-group">
+                <button class='btn btn-primary' id='filter_dates' onclick='filter_impressions_by_date()'>Filter</button>
+              </div>
             </div>
           </div>
           <div class='row'>
@@ -260,14 +266,18 @@
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <script src="/static/js/ie10-viewport-bug-workaround.js"></script>
     <script src="/static/js/functionality.js"></script>
-    {% if countries_impressions_data %}
     <script src="/static/js/moment.min.js"></script>
-    <script src="/static/js/jquery-ui.min.js"></script>
     <script src="/static/js/bootstrap-sortable.js"></script>
+    {% if countries_impressions_data %}
+    <script src="/static/js/jquery-ui.min.js"></script>
     <script src="/static/js/jQDateRangeSlider-min.js"></script>
     <script>
     //<!--
-      $("#slider").dateRangeSlider();
+      $("#slider").dateRangeSlider({
+          defaultValues:{
+            min: new Date({{slider.start_date}}),
+            max: new Date({{slider.end_date}})
+          }});
     //-->
     </script>
     {% endif %}

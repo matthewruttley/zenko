@@ -4,6 +4,7 @@
 #> python server.py
 #and then visit http://localhost:5000
 
+from datetime import datetime
 from webbrowser import open as open_webpage
 from flask import Flask, render_template
 import redshift
@@ -68,8 +69,16 @@ def show_countries_impressions(tile_id):
 	meta_data = redshift.get_tile_meta_data(cache, tile_id)
 	client = "{0} [{1}]".format([x[1] for x in meta_data if x[0] == 'title'][0], tile_id)
 	
+	#set the start and end dates of the tile
+	start_date = datetime.strptime([x for x in meta_data if x[0] == 'created_at'][0][1], "%Y-%m-%d %H:%M:%S.%f")
+	today = datetime.now()
+	slider = {
+		'start_date': "{0}, {1}, {2}".format(start_date.year, start_date.month, start_date.day),
+		'end_date': "{0}, {1}, {2}".format(today.year, today.month, today.day)
+	}
+	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, tile_id=tile_id)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, tile_id=tile_id, slider=slider)
 
 @app.route('/tile/<client>/<locale>')
 def show_creative_selection_page(client, locale):
