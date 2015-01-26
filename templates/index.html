@@ -60,6 +60,7 @@
         </div>
         
         <div class="col-sm-9 col-sm-offset-2 col-md-10 col-md-offset-2 main">
+        
           {% if not main_page %}
           <h2 class="sub-header">Client: <span id='tile_name'>{{client}}</span></h2>
           {% endif %}
@@ -135,7 +136,7 @@
               </div>
           </div>
           <div class='row'>
-            <div class='col-md-6 col-md-offset-1 col-sm-6'>
+            <div class='col-md-9 col-md-offset-1 col-sm-6'>
               <div class="table-responsive">
                 <table class="table table-striped table-bordered">
                   <thead>
@@ -166,31 +167,30 @@
               </div>
             </div>
           </div>
-        </div>
-        {% endif %}
-        
-        {% if meta_data %}
-        <hr>
-        <div class='row'>
-          <div class='col-md-6 col-md-offset-1 col-sm-6'>
-            <div class='table-responsive'>
-              <table class='table table-striped table-bordered'>
-                {% for attribute in meta_data %}
-                <tr>
-                  <td>{{attribute.0}}</td>
-                  {% if attribute.0 == 'target_url' %}
-                  <td><a href="{{attribute.1}}">{{attribute.1}}</a></td>
-                  {% else %}
-                  <td>{{attribute.1}}</td>
-                  {% endif %}
-                </tr>
-                {% endfor %}
-              </table>
+          {% endif %}
+          
+          {% if meta_data %}
+          <div class='row'>
+            <div class='col-md-9 col-md-offset-1 col-sm-6'>
+              <div class='table-responsive'>
+                <table class='table table-striped table-bordered'>
+                  {% for attribute in meta_data %}
+                  <tr>
+                    <td>{{attribute.0}}</td>
+                    {% if attribute.0 == 'target_url' %}
+                    <td><a href="{{attribute.1}}">{{attribute.1}}</a></td>
+                    {% else %}
+                    <td>{{attribute.1}}</td>
+                    {% endif %}
+                  </tr>
+                  {% endfor %}
+                </table>
+              </div>
             </div>
           </div>
+          {% endif %}
+          
         </div>
-        {% endif %}
-        
       </div>
     </div>
 
