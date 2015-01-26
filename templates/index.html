@@ -7,7 +7,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="description" content="Simple Tiles Reporting Application">
     <meta name="author" content="Matthew Ruttley - mruttley@mozilla.com">
-    <link rel="icon" href="static/img/favicon.ico">
+    <link rel="icon" href="/static/img/favicon.ico">
 
     <title>Zenko</title>
 
@@ -273,11 +273,18 @@
     <script src="/static/js/jQDateRangeSlider-min.js"></script>
     <script>
     //<!--
-      $("#slider").dateRangeSlider({
-          defaultValues:{
-            min: new Date({{slider.start_date}}),
-            max: new Date({{slider.end_date}})
-          }});
+      $("#slider").dateRangeSlider(
+        {
+          defaultValues: {
+            min: new Date({{slider.start_value}}),
+            max: new Date({{slider.end_value}})
+          },
+          bounds: {
+            min: new Date({{slider.start_bound}}),
+            max: new Date({{slider.end_bound}})
+          }
+        }
+      );
     //-->
     </script>
     {% endif %}

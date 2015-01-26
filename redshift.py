@@ -198,23 +198,26 @@ def get_impressions(cursor, timeframe, tile_id, country="all"):
 
 def get_countries_impressions_data(cursor, tile_id, start_date=0, end_date=0):
 	"""Gets aggregated impressions grouped by each country"""
-	query = """
-				SELECT
-					countries.country_name,
-					SUM (impressions) AS impressions,
-					SUM (clicks) AS clicks,
-					SUM (pinned) AS pins,
-					SUM (blocked) AS blocks
-				FROM
-					impression_stats_daily
-				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
-				WHERE
-					tile_id = 647
-				GROUP BY
-					country_name
-				ORDER BY
-					country_name ASC
-	"""
+	
+	if (start_date==0) and (end_date==0): #i.e. no date specified
+		query = """
+					SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+					FROM impression_stats_daily
+					INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+					WHERE tile_id = {0}
+					GROUP BY country_name
+					ORDER BY impressions DESC
+		""".format(tile_id)
+	else:
+		query = """
+					SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+					FROM impression_stats_daily
+					INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+					WHERE tile_id = {0} AND date >= '{1}' AND date <= '{2}'
+					GROUP BY country_name
+					ORDER BY impressions DESC
+		""".format(tile_id, start_date, end_date)
+	
 	cursor.execute(query)
 	data = cursor.fetchall()
 	

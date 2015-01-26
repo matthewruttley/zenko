@@ -63,18 +63,50 @@ def show_countries_impressions(tile_id):
 	clients = redshift.get_sponsored_client_list(cache)
 	
 	#get the country data
-	countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_id) #start and end date coming soon
+	countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_id) 
 	
 	#get some meta data about the tile from the tiles database
 	meta_data = redshift.get_tile_meta_data(cache, tile_id)
 	client = "{0} [{1}]".format([x[1] for x in meta_data if x[0] == 'title'][0], tile_id)
 	
 	#set the start and end dates of the tile
-	start_date = datetime.strptime([x for x in meta_data if x[0] == 'created_at'][0][1], "%Y-%m-%d %H:%M:%S.%f")
-	today = datetime.now()
+	start_bound = datetime.strptime([x for x in meta_data if x[0] == 'created_at'][0][1], "%Y-%m-%d %H:%M:%S.%f")
+	end_bound = datetime.now()
 	slider = {
-		'start_date': "{0}, {1}, {2}".format(start_date.year, start_date.month, start_date.day),
-		'end_date': "{0}, {1}, {2}".format(today.year, today.month, today.day)
+		'start_bound': "{0}, {1}, {2}".format(start_bound.year, start_bound.month-1, start_bound.day),
+		'end_bound': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day),
+		'start_value': "{0}, {1}, {2}".format(start_bound.year, start_bound.month-1, start_bound.day),
+		'end_value': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day)
+	}
+	
+	#render the template
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, tile_id=tile_id, slider=slider)
+
+@app.route('/countries_impressions/<tile_id>/<start_value>/<end_value>')
+def show_countries_impressions_with_date_range(tile_id, start_value, end_value):
+	"""Shows impressions for a tile_id"""
+	
+	#get a list of clients for the side bar
+	clients = redshift.get_sponsored_client_list(cache)
+	
+	#get the country data
+	countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_id, start_value, end_value) 
+	
+	#get some meta data about the tile from the tiles database
+	meta_data = redshift.get_tile_meta_data(cache, tile_id)
+	client = "{0} [{1}]".format([x[1] for x in meta_data if x[0] == 'title'][0], tile_id)
+	
+	#set the start and end dates of the tile
+	start_bound = datetime.strptime([x for x in meta_data if x[0] == 'created_at'][0][1], "%Y-%m-%d %H:%M:%S.%f")
+	end_bound = datetime.now()
+	start_value = [int(x) for x in start_value.split("-")]; end_value = [int(x) for x in end_value.split("-")]
+	start_value = datetime(start_value[0], start_value[1], start_value[2])
+	end_value = datetime(end_value[0], end_value[1], end_value[2])
+	slider = {
+		'start_bound': "{0}, {1}, {2}".format(start_bound.year, start_bound.month-1, start_bound.day),
+		'end_bound': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day),
+		'start_value': "{0}, {1}, {2}".format(start_value.year, start_value.month-1, start_value.day),
+		'end_value': "{0}, {1}, {2}".format(end_value.year, end_value.month-1, end_value.day),
 	}
 	
 	#render the template

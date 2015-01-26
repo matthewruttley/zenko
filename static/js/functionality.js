@@ -17,10 +17,10 @@ function filter_creative_by_country() {
 
 function filter_impressions_by_date(){
 	// Filters impressions using the date slider
-	
-	start_date = 0
-	end_date = 0
-	
-	
-	
+	var tile_id = document.getElementById('tile_name').innerText.split("[")[1].split("]")[0]
+	var chosen_values = $("#slider").dateRangeSlider("values")
+	start_date = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")
+	end_date = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
+	redirect = "/countries_impressions/" + tile_id + "/" + start_date + "/" + end_date
+	location.href = redirect
 }
