@@ -32,7 +32,7 @@ def show_impressions(tile_id):
 	client = "{0} [{1}]".format([x[1] for x in meta_data if x[0] == 'title'][0], tile_id)
 	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, tile_id=tile_id)
 
 @app.route('/impressions/<tile_id>/<country>')
 def show_country_impressions(tile_id, country):
@@ -52,7 +52,24 @@ def show_country_impressions(tile_id, country):
 	client = "{0} [{1}]".format([x[1] for x in meta_data if x[0] == 'title'][0], tile_id)
 	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id)
+
+@app.route('/countries_impressions/<tile_id>')
+def show_countries_impressions(tile_id):
+	"""Shows impressions for a tile_id"""
+	
+	#get a list of clients for the side bar
+	clients = redshift.get_sponsored_client_list(cache)
+	
+	#get the country data
+	countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_id) #start and end date coming soon
+	
+	#get some meta data about the tile from the tiles database
+	meta_data = redshift.get_tile_meta_data(cache, tile_id)
+	client = "{0} [{1}]".format([x[1] for x in meta_data if x[0] == 'title'][0], tile_id)
+	
+	#render the template
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, tile_id=tile_id)
 
 @app.route('/tile/<client>/<locale>')
 def show_creative_selection_page(client, locale):

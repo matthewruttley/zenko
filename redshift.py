@@ -196,6 +196,36 @@ def get_impressions(cursor, timeframe, tile_id, country="all"):
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
 	return impressions
 
+def get_countries_impressions_data(cursor, tile_id, start_date=0, end_date=0):
+	"""Gets aggregated impressions grouped by each country"""
+	query = """
+				SELECT
+					countries.country_name,
+					SUM (impressions) AS impressions,
+					SUM (clicks) AS clicks,
+					SUM (pinned) AS pins,
+					SUM (blocked) AS blocks
+				FROM
+					impression_stats_daily
+				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+				WHERE
+					tile_id = 647
+				GROUP BY
+					country_name
+				ORDER BY
+					country_name ASC
+	"""
+	cursor.execute(query)
+	data = cursor.fetchall()
+	
+	#insert the CTR
+	impressions = []
+	for day in data:
+		day = list(day)
+		ctr = round((day[2] / float(day[1])) * 100, 5)
+		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
+	return impressions
+
 ######### Other meta-data #########
 
 def get_column_headers(cursor, table_name):
