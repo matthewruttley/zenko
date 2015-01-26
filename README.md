@@ -5,12 +5,12 @@
 # Installation:
 1. > cd ~/Documents
 2. > git clone https://github.com/matthewruttley/zenko.git
-2.a. (You may be prompted to install XCode, if so, please do)
+ (You may be prompted to install XCode, if so, please do)
 3. Open finder and navigate to Documents --> zenko
 4. Drag the two files "1. Start Zenko Server" and "2. Open Zenko" to your Desktop
 5. Install: http://postgresapp.com/ and drag the application to your Applications folder
 6. > PATH=/Applications/Postgres.app/MacOS/bin:$PATH
-6.a. (the location of the bin folder above may differ)
+ (the location of the bin folder above may differ)
 7. > sudo easy_install flask psycopg2
 8. Make sure you have the Mozilla VPN installed (see mana documentation)
 9. Email mruttley@mozilla.com for the login script. I can't put it publicly on github.
