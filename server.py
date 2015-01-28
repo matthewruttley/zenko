@@ -130,7 +130,7 @@ def show_country_impressions():
 		}
 	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, slider=slider, specific_tile=specific_tile)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, slider=slider, specific_tile=specific_tile, locale=locale)
 
 @app.route('/tile')
 def show_creative_selection_page():
