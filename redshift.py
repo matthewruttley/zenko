@@ -89,7 +89,7 @@ def build_tiles_cache(cursor):
 	del cache['last_updated'] #not useful when querying
 	return cache
 
-######### Querying client data ###########
+######### Querying client/tile data ###########
 
 def get_all_locales(cache):
 	"""Gets a list of all locales and prints them out to the terminal"""
@@ -115,10 +115,39 @@ def get_sponsored_client_list(cache):
 	return sorted(list(clients))
 
 def get_tile_meta_data(cache, tile_id):
+	"""Gets the entry for a specific tile in the tiles database and returns it as a list of lists"""
 	metadata_table = sorted([list(x) for x in cache[tile_id].items()])
 	metadata_table[1][1] = len(metadata_table[1][1]) #collapse countries
 	metadata_table.insert(0, ["id", tile_id]) #insert id
 	return metadata_table
+
+def get_client_meta_data(cache, client=False, locale=False):
+	"""Compiles all the client tiles entries in the tiles database and returns them as a list of lists to be entabulated"""
+	
+	data = {
+		'Tile IDs': [],
+		'Locales': set(),
+		'Client start date': datetime.now(),
+		'client': client
+	}
+	client = client.lower()
+	
+	for tile_id, tile in cache.iteritems():
+		if client in tile['title'].lower():
+			if locale:
+				if locale != tile['locale']:
+					continue
+			data['Tile IDs'].append(tile_id)
+			data["Locales"].update([tile['locale']])
+			created_at = datetime.strptime(tile['created_at'], "%Y-%m-%d %H:%M:%S.%f")
+			if data['Client start date'] > created_at:
+				data['Client start date'] = created_at
+	
+	#now turn into a list of lists
+	data["Locales"] = ", ".join(sorted(list(data['Locales'])))
+	data['Tile IDs'] = ", ".join(sorted(data['Tile IDs']))
+	data = sorted(data.items())
+	return data
 
 def get_tiles_from_client_in_locale(cache, client, locale):
 	"""Gets a list of tiles that run in a particular locale for a particular client"""
@@ -130,12 +159,25 @@ def get_tiles_from_client_in_locale(cache, client, locale):
 				tiles.append(tile)
 	return tiles
 
-def get_countries_per_client(cache, client):
+def get_tiles_per_client(cache, client):
+	"""Gets a list of tiles for a particular client"""
+	tiles = []
+	for tile_id, tile in cache.iteritems():
+		if client in tile['title']:
+			tile['id'] = tile_id
+			tiles.append(tile)
+	return tiles
+
+def get_countries_per_client(cache, client=False, locale=False):
 	"""Gets a list of countries that a particular tile ID ran in"""
 	countries = set()
 	for x in cache.itervalues():
 		if client in x['title']:
-			countries.update(x['countries'])
+			if locale:
+				if locale == x['locale']:
+					countries.update(x['countries'])
+			else:
+				countries.update(x['countries'])
 	return sorted(countries)
 
 def get_countries_per_tile(cache, tile_id):
@@ -159,59 +201,69 @@ def get_client_attributes(cursor, cache, client):
 
 ########## Querying impressions data ###########
 
-def get_impressions(cursor, timeframe, tile_id, country="all"):
-	"""Gets and aggregates impressions in a certain time frame"""
+def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all', locale=False):
+	"""Gets aggregated impressions grouped by day"""
 	
-	all_countries = """SELECT date, SUM(impressions) as impressions, SUM(clicks) as clicks, SUM(pinned) as pinned, SUM(blocked) as blocked
-						FROM impression_stats_daily
-						WHERE tile_id = {0}
-						GROUP BY date
-						ORDER BY date ASC;
-	""".format(tile_id)
-	
-	specific_country = """SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pinned, SUM (blocked) AS blocked
-						FROM impression_stats_daily
-						INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
-						WHERE tile_id = {0}
-						AND countries.country_name = '{1}'
-						GROUP BY impression_stats_daily.date, countries.country_name
-						ORDER BY impression_stats_daily.date ASC;""".format(tile_id, country)
-	
-	if country == 'all':
-		cursor.execute(all_countries)
-	else:
-		cursor.execute(specific_country)
-	
-	data = cursor.fetchall()
-	impressions = []
-	#insert CTR and convert to lists
-	for day in data:
-		day = list(day)
-		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
-		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
-	return impressions
-
-def get_countries_impressions_data(cursor, tile_id, start_date=0, end_date=0):
-	"""Gets aggregated impressions grouped by each country"""
-	
-	if (start_date==0) and (end_date==0): #i.e. no date specified
-		query = """
-					SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
-					FROM impression_stats_daily
-					INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
-					WHERE tile_id = {0}
-					GROUP BY country_name
-					ORDER BY impressions DESC
-		""".format(tile_id)
-	else:
-		query = """
-					SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
-					FROM impression_stats_daily
-					INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
-					WHERE tile_id = {0} AND date >= '{1}' AND date <= '{2}'
-					GROUP BY country_name
-					ORDER BY impressions DESC
-		""".format(tile_id, start_date, end_date)
+	if client: #get all tiles
+		if country == "all": #all countries
+			if locale:
+				query = """
+				SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+				FROM impression_stats_daily
+				INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+				WHERE LOWER (title) LIKE '%{0}%' AND tiles.locale = '{1}'
+				GROUP BY date
+				ORDER BY date ASC
+				""".format(client.lower(), locale)
+			else:
+				query = """
+				SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+				FROM impression_stats_daily
+				INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+				WHERE LOWER (title) LIKE '%{0}%'
+				GROUP BY date
+				ORDER BY date ASC
+				""".format(client.lower())
+		else: #specific country
+			if locale:
+				query = """
+				SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+				FROM impression_stats_daily
+				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+				INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+				WHERE LOWER (title) LIKE '%{0}%' AND country_name = '{1}' AND tiles.locale = '{2}'
+				GROUP BY date
+				ORDER BY date ASC
+				""".format(client.lower(), country, locale)
+			else:
+				query = """
+				SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+				FROM impression_stats_daily
+				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+				INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+				WHERE LOWER (title) LIKE '%{0}%' AND country_name = '{1}'
+				GROUP BY date
+				ORDER BY date ASC
+				""".format(client.lower(), country)
+	else: #specific tile
+		if country == "all": #all countries
+			query = """
+			SELECT date, SUM(impressions) as impressions, SUM(clicks) as clicks, SUM(pinned) as pinned, SUM(blocked) as blocked
+			FROM impression_stats_daily
+			WHERE tile_id = {0}
+			GROUP BY date
+			ORDER BY date ASC;
+			""".format(tile_id)
+		else: #specific country
+			query = """
+			SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pinned, SUM (blocked) AS blocked
+			FROM impression_stats_daily
+			INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+			WHERE tile_id = {0}
+			AND countries.country_name = '{1}'
+			GROUP BY impression_stats_daily.date, countries.country_name
+			ORDER BY impression_stats_daily.date ASC;
+			""".format(tile_id, country)
 	
 	cursor.execute(query)
 	data = cursor.fetchall()
@@ -224,7 +276,85 @@ def get_countries_impressions_data(cursor, tile_id, start_date=0, end_date=0):
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
 	return impressions
 
-######### Other meta-data #########
+def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_date=False, client=False, locale=False):
+	"""Gets aggregated impressions grouped by each country"""
+	
+	if tile_id == False: #get all tiles
+		if (start_date==False) and (end_date==False): #i.e. no date specified
+			if locale:
+				query = """
+					SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+					FROM impression_stats_daily
+					INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+					INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+					WHERE LOWER (title) LIKE '%{0}%' AND tiles.locale = '{1}'
+					GROUP BY country_name
+					ORDER BY impressions DESC
+				""".format(client.lower(), locale)
+			else:
+				query = """
+					SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+					FROM impression_stats_daily
+					INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+					INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+					WHERE LOWER (title) LIKE '%{0}%'
+					GROUP BY country_name
+					ORDER BY impressions DESC
+				""".format(client.lower())
+		else: #date specified
+			if locale:
+				query = """
+					SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+					FROM impression_stats_daily
+					INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+					INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+					WHERE LOWER (title) LIKE '%{0}%' AND DATE >= '{1}' AND DATE <= '{2}' AND tiles.locale = '{3}'
+					GROUP BY country_name
+					ORDER BY impressions DESC
+				""".format(client.lower(), start_date, end_date, locale)
+			else:
+				query = """
+					SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+					FROM impression_stats_daily
+					INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+					INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+					WHERE LOWER (title) LIKE '%{0}%' AND DATE >= '{1}' AND DATE <= '{2}'
+					GROUP BY country_name
+					ORDER BY impressions DESC
+				""".format(client.lower(), start_date, end_date)
+	else:
+		#specific tile
+		if (start_date==False) and (end_date==False): #i.e. no date specified
+			query = """
+				SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+				FROM impression_stats_daily
+				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+				WHERE tile_id = {0}
+				GROUP BY country_name
+				ORDER BY impressions DESC
+			""".format(tile_id)
+		else:
+			query = """
+				SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+				FROM impression_stats_daily
+				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+				WHERE tile_id = {0} AND date >= '{1}' AND date <= '{2}'
+				GROUP BY country_name
+				ORDER BY impressions DESC
+			""".format(tile_id, start_date, end_date)
+	
+	cursor.execute(query)
+	data = cursor.fetchall()
+	
+	#insert the CTR
+	impressions = []
+	for day in data:
+		day = list(day)
+		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
+		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
+	return impressions
+
+######### Other SQLish meta-data #########
 
 def get_column_headers(cursor, table_name):
 	"""Gets the column headings for a table"""

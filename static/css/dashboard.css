@@ -112,3 +112,8 @@ body {
   position: absolute;
   top: 59px;
 }
+
+.unbreakable {
+  white-space: nowrap;
+  text-align: center;
+}
