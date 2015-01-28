@@ -59,8 +59,8 @@
         <div class="col-sm-2 col-md-2 sidebar">
           <ul class="nav nav-sidebar">
             <!-- A list of all clients -->
-            {% for client in clients %}
-            <li><a href="/tile?client={{ client }}&locale=All%20Locales">{{ client }}</a></li>
+            {% for c in clients %}
+            <li{%if c == client %} class="active"{%endif%}><a href="/tile?client={{c}}&locale=All%20Locales">{{c}}</a></li>
             {% endfor %}
           </ul>
         </div>
@@ -138,7 +138,7 @@
           <div class='row'>
             <ul class="nav nav-tabs">
               {% if specific_tile %}
-              <li role="presentation" class="active"><a href="/daily_impressions?tile_id{{tile_id}}">Day-by-day</a></li>
+              <li role="presentation" class="active"><a href="/daily_impressions?tile_id={{tile_id}}">Day-by-day</a></li>
               <li role="presentation"><a href="/country_impressions?tile_id={{tile_id}}">Country-by-country</a></li>
               {% else %}
               <li role="presentation" class="active"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Day-by-day</a></li>
@@ -200,7 +200,7 @@
           <div class='row'>
             <ul class="nav nav-tabs">
               {% if specific_tile %}
-              <li role="presentation"><a href="/daily_impressions?tile_id{{tile_id}}">Day-by-day</a></li>
+              <li role="presentation"><a href="/daily_impressions?tile_id={{tile_id}}">Day-by-day</a></li>
               <li role="presentation" class="active"><a href="/country_impressions?tile_id={{tile_id}}">Country-by-country</a></li>
               {% else %}
               <li role="presentation"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Day-by-day</a></li>

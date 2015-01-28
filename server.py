@@ -48,15 +48,18 @@ def show_daily_impressions():
 			meta_data = redshift.get_client_meta_data(cache, client=client, locale=locale)
 		else:
 			meta_data = redshift.get_client_meta_data(cache, client=client)
+		specific_tile = False
 	else:
 		if country:
 			impressions_data = redshift.get_daily_impressions_data(cursor, tile_id=tile_id, country=country)
 		else:
 			impressions_data = redshift.get_daily_impressions_data(cursor, tile_id=tile_id)
 		meta_data = redshift.get_tile_meta_data(cache, tile_id)
+		client = [x[1] for x in meta_data if x[0] == 'title'][0]
+		specific_tile = tile_id
 	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile)
 
 @app.route('/country_impressions')
 def show_country_impressions():
@@ -66,7 +69,7 @@ def show_country_impressions():
 	clients = redshift.get_sponsored_client_list(cache)
 	
 	#get the GET variables
-	tile = request.args.get("tile_id")
+	tile_id = request.args.get("tile_id")
 	start_date = request.args.get("start_date")
 	end_date = request.args.get("end_date")
 	client = request.args.get("client")
@@ -121,7 +124,8 @@ def show_country_impressions():
 			'end_value': "{0}, {1}, {2}".format(end_date.year, end_date.month-1, end_date.day),
 		}
 	else:
-		
+		if type(start_bound) == unicode:
+			start_bound = datetime.strptime(start_bound, "%Y-%m-%d %H:%M:%S.%f")
 		slider = {
 			'start_bound': "{0}, {1}, {2}".format(start_bound.year, start_bound.month-1, start_bound.day),
 			'end_bound': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day),
