@@ -25,6 +25,30 @@ function filter_creative_by_country() {
 	}
 }
 
+function filter_lbl_by_country(){
+	//filters locale-by-locale page by country and/or date slider
+	
+	//get start and end
+	var chosen_values = $("#slider").dateRangeSlider("values")
+	start_date = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")
+	end_date = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
+	
+	if (location.href.indexOf('client=')!=-1) { //particular client
+		var tile_name = document.getElementById('tile_name').textContent
+		redirect = "/locale_impressions?client=" + tile_name + "&start_date=" + start_date + "&end_date=" + end_date
+	}else{ //particular tile
+		var tile_id = document.getElementById('tile_id').textContent
+		redirect = "/locale_impressions?tile_id=" + tile_id + "&start_date=" + start_date + "&end_date=" + end_date
+	}
+	
+	country = document.getElementById("countries").value
+	if (country != "All Countries") {
+		redirect += "&country=" + country
+	}
+	
+	location.href = redirect
+}
+
 function filter_impressions_by_date(){
 	// Filters impressions using the date slider
 	

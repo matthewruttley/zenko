@@ -355,6 +355,45 @@ def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
 	return impressions
 
+def get_locale_impressions_data(cursor, client=False, start_date=False, end_date=False, country=False, tile_id=False):
+	"""Get impressions data locale-by-locale"""
+
+	#construct WHERE clause
+	where = []
+	if start_date:
+		where.append("DATE >= '{0}'".format(start_date))
+	if end_date:
+		where.append("DATE <= '{0}'".format(end_date))
+	if tile_id:
+		where.append("impression_stats_daily.id = " + tile_id)
+	if client:
+		where.append("LOWER (title) LIKE '%{0}%'".format(client.lower()))
+	if country:
+		where.append("country_name = '{0}'".format(country))
+	where = "WHERE " + ' AND '.join(where)
+	
+	query = """
+			SELECT impression_stats_daily.locale, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+			FROM impression_stats_daily
+			INNER JOIN tiles on tiles.id = impression_stats_daily.tile_id
+			INNER JOIN countries on countries.country_code = impression_stats_daily.country_code
+			{0}
+			GROUP BY impression_stats_daily.locale
+			ORDER BY impressions DESC;
+	""".format(where)
+	
+	cursor.execute(query)
+	data = cursor.fetchall()
+	
+	#insert the CTR and a javascript formatted date
+	impressions = []
+	for day in data:
+		day = list(day)
+		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
+		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]])
+	
+	return impressions
+
 ######### Other SQLish meta-data #########
 
 def get_column_headers(cursor, table_name):
@@ -370,3 +409,20 @@ def get_row_count(cursor, table_name):
 	cursor.execute("SELECT COUNT(*) FROM " + table_name + ";")
 	return cursor.fetchall()
 	
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
