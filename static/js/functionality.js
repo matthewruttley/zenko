@@ -87,7 +87,7 @@ function convert_table_to_array() {
 		//get each cell in the row
 		row_content = []
 		for (j=0;j<row.length;j++) {
-			cell_content = row[j].textContent
+			cell_content = row[j].textContent.replace(",", "")
 			row_content.push(cell_content)
 		}
 		data.push(row_content)
