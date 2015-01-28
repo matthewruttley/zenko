@@ -268,12 +268,13 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 	cursor.execute(query)
 	data = cursor.fetchall()
 	
-	#insert the CTR
+	#insert the CTR and a javascript formatted date
 	impressions = []
 	for day in data:
 		day = list(day)
 		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
-		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
+		js_date = "Date.UTC({0}, {1}, {2})".format(day[0].year, day[0].month, day[0].day)
+		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], js_date])
 	return impressions
 
 def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_date=False, client=False, locale=False):

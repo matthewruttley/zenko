@@ -6,13 +6,25 @@
 
 from datetime import datetime
 from webbrowser import open as open_webpage
-from flask import Flask, render_template, request
+from flask import Flask, render_template, request, make_response
 import redshift
 app = Flask(__name__)
 
 #set up database connection
 cursor = redshift.cursor()
 cache = redshift.build_tiles_cache(cursor)
+
+@app.route('/download_excel', methods=['GET', 'POST'])
+def download_excel():
+	"""Creates a file download from recieved post information"""
+	data = request.form["data"]
+	data = data.split(",")
+	data = [data[x:x+6] for x in xrange(0, len(data), 6)]
+	data = "\n".join([','.join(x) for x in data])
+	#filename = request.form["filename"]
+	response = make_response(data)
+	response.headers["Content-Disposition"] = "attachment; filename=data.csv"
+	return response	
 
 @app.route('/daily_impressions')
 def show_daily_impressions():

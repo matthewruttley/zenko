@@ -58,3 +58,110 @@ function show_all_client_data(){
 		location.href = "/daily_impressions?client=" + client_name + "&locale=" + locale
 	}
 }
+
+function convert_table_to_array() {
+	//convert the current table to a list of lists
+	itable = document.getElementById("impressions_table")
+	
+	//convert the table to a list of lists
+	var data = [];
+	
+	//meta data
+	col_count = itable.children[0].children[0].children.length
+	row_count = itable.children[1].children.length
+	
+	//grab the header
+	header_cells = itable.children[0].children[0].children
+	header = []
+	for (i=0;i<header_cells.length;i++) {
+		header.push(header_cells[i].textContent)
+	}
+	data.push(header)
+	
+	//get each row
+	row_cells = itable.children[1].children
+	
+	for (i=0;i<row_cells.length;i++) {
+		row = itable.children[1].children[i].children
+		
+		//get each cell in the row
+		row_content = []
+		for (j=0;j<row.length;j++) {
+			cell_content = row[j].textContent
+			row_content.push(cell_content)
+		}
+		data.push(row_content)
+	}
+	return data
+}
+
+function download_xls() {
+	//Downloads the current table as an excel file
+	
+	//Works by:
+	//1. Creating an iframe
+	//2. Inserting a form with a hidden field
+	//3. Putting the table data into the hidden field
+	//4. Submitting via post the form data and filename
+	//5. The server then converts that to excel and redirects to the page
+	//6. It appears as a file download
+	
+	iframe = document.createElement("iframe")
+	iframe.setAttribute("width", 1)
+	iframe.setAttribute("height", 1)
+	iframe.setAttribute("frameborder", 0)
+	iframe.setAttribute("src", "about:blank")
+	
+	form = document.createElement("form")
+	form.setAttribute("method", "POST")
+	form.setAttribute("action", "/download_excel")
+	
+	data = document.createElement("input")
+	data.setAttribute("type", "hidden")
+	data.setAttribute("value", convert_table_to_array())
+	data.setAttribute("name", "data")
+	
+	filename = document.createElement("input")
+	filename.setAttribute("type", "hidden")
+	filename.setAttribute("value", location.href)
+	filename.setAttribute("name", "filename")
+	
+	form.appendChild(data)
+	form.appendChild(filename)
+	iframe.appendChild(form)
+	document.body.appendChild(iframe)
+	
+	form.submit()
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
