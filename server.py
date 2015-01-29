@@ -234,6 +234,20 @@ def show_creative_selection_page():
 	#render the template
 	return render_template("index.html", clients=clients, attributes=attributes, client=client, creative=tiles, locale=locale)
 
+@app.route("/countries")
+def show_countries():
+	"""Shows overall countries"""
+	
+	#get a list of clients for the side bar
+	clients = redshift.get_sponsored_client_list(cache)
+	
+	#get country impressions data
+	country = request.args.get("country")
+	if not country: country = "United States"
+	country_impressions_data = redshift.get_country_impressions_data(cursor, country=country)
+	
+	return render_template("countries.html", clients=clients, country_impressions_data=country_impressions_data, country=country)
+
 @app.route('/')
 def show_main_page():
 	#get a list of clients for the side bar

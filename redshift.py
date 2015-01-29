@@ -365,7 +365,7 @@ def get_locale_impressions_data(cursor, client=False, start_date=False, end_date
 	if end_date:
 		where.append("DATE <= '{0}'".format(end_date))
 	if tile_id:
-		where.append("impression_stats_daily.id = " + tile_id)
+		where.append("impression_stats_daily.tile_id = " + tile_id)
 	if client:
 		where.append("LOWER (title) LIKE '%{0}%'".format(client.lower()))
 	if country:
@@ -393,6 +393,68 @@ def get_locale_impressions_data(cursor, client=False, start_date=False, end_date
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]])
 	
 	return impressions
+
+def get_country_impressions_data(cursor, country='United States'):
+	"""Gets country impressions data"""
+
+	query = """SELECT
+				date,
+				SUM (impressions) AS impressions,
+				SUM (clicks) AS clicks,
+				SUM (pinned) AS pins,
+				SUM (blocked) AS blocks
+			FROM
+				impression_stats_daily
+			INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+			WHERE 
+				country_name = '{0}'
+			GROUP BY
+				date
+			ORDER BY
+				date""".format(country)
+	
+	cursor.execute(query)
+	data = cursor.fetchall()
+	
+	#insert the CTR
+	impressions = []
+	for day in data:
+		day = list(day)
+		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
+		impressions.append([day[0], day[1], day[2], str(ctr), day[3], day[4]])
+	
+	#convert to a JSON ish format for highcharts
+	#or at least something that can be easily understood by jinja
+	#	        series: [{
+	#            name: 'Impressions',
+	#            data: [
+	#                [Date.UTC(1970,  9, 27), 0   ],
+	#                [Date.UTC(1971,  5, 12), 0   ]
+	#            ]}]
+	
+	#I think the easiest way to do this is to create a structure like:
+	#[
+	#	[
+	#		'impressions',
+	#		[
+	#			["Date.UTC(2014, 1, 1)", 123],
+	#			["Date.UTC(2014, 1, 2)", 345]
+	#		]
+	#	],
+	#	...
+	#]
+	# and then simply iterate through that in jinja
+	
+	column_names = [x[0] for x in cursor.description]
+	list_of_dates = ["Date.UTC({0}, {1}, {2})".format(x[0].year, x[0].month-1, x[0].day) for x in data]
+	js_data = [[x, []] for x in column_names if x != 'date']
+	
+	for row_index, row in enumerate(data):
+		for n, cell in enumerate(row[1:]): #ignore date
+			js_data[n][1].append([list_of_dates[row_index], cell])
+	
+	return js_data
+	
 
 ######### Other SQLish meta-data #########
 
