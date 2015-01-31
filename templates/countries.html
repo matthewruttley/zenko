@@ -77,7 +77,6 @@
                         <input type="checkbox" class='choice' id="{{field.0}}" name="{{field.0}}" value="{{field.0}}" checked> {{field.0}}
                     </label>
                     {% endfor %}
-                    <input type='button' id='update_chart' class='btn btn-primary' value='Update chart'>
                 </form>
             </div>
         </div>
@@ -124,7 +123,7 @@
                 ]
             });
         
-            $('#update_chart').click(function() {
+            $('.choice').click(function() {
 
                 var chart = $('#container').highcharts();
                 var buttons = document.getElementsByClassName("choice")
@@ -136,14 +135,12 @@
                     var exists = seriesExists(choice)
                     
                     if(isChecked && !exists){
-                        console.log('adding ' + choice)
                         var series = chart.addSeries({
                             name: choice,
                             data: impressions_data[choice]
                         });
                     }
                     if(!isChecked && exists){
-                        console.log('removing ' + choice)
                         for (i=0;i<chart.series.length;i++) {
                             if (chart.series[i].name == choice) {
                                 chart.series[i].remove()
