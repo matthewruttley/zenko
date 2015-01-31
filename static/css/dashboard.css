@@ -117,3 +117,17 @@ body {
   white-space: nowrap;
   text-align: center;
 }
+
+#control_box {
+  border: 1px solid grey;
+  text-align: center;
+  margin: 0 auto;
+  width: 50%;
+  border-radius: 5px;
+  padding: 5px;
+  background-color: aliceblue;
+}
+
+#update_chart {
+  margin-left: 10px;
+}

@@ -29,7 +29,8 @@
       <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <script src="http://code.highcharts.com/highcharts.js"></script>
+    
+    <script src="http://code.highcharts.com/stock/highstock.js"></script>
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
     
   </head>
@@ -66,69 +67,93 @@
             {% endfor %}
           </ul>
         </div>
-        <div class='col-md-6 col-sm-6'>
-            
-        </div>
         <div class="col-sm-9 col-sm-offset-2 col-md-10 col-md-offset-2 main">
-            <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+            <div id="container" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
+            
+            <div id='control_box'>
+                <form action="">
+                    {% for field in country_impressions_data %}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class='choice' id="{{field.0}}" name="{{field.0}}" value="{{field.0}}" checked> {{field.0}}
+                    </label>
+                    {% endfor %}
+                    <input type='button' id='update_chart' class='btn btn-primary' value='Update chart'>
+                </form>
+            </div>
         </div>
       </div>
     </div>
 
     <script>
-    $(function () {
-        $('#container').highcharts({
-            chart: {
-                type: 'spline'
-            },
-            title: {
-                text: 'Overall stats for: {{country}}'
-            },
-            xAxis: {
-                type: 'datetime',
-                dateTimeLabelFormats: { // don't display the dummy year
-                    month: '%e. %b',
-                    year: '%b'
-                },
-                title: {
-                    text: 'Date'
+        
+        impressions_data = {
+            {% for field in country_impressions_data %}
+            {{ field.0 }}: [
+                {% for datum in field.1 %}
+                [{{datum.0}}, {{datum.1}}],{% endfor %}
+            ],
+            {% endfor %}
+        }
+        
+        function seriesExists(series_name){
+            //Does a series exist on the chart?
+            var series = $("#container").highcharts().series
+            for (i=0;i<series.length;i++) {
+                if (series[i].name == series_name) {
+                    return true
                 }
-            },
-            yAxis: {
-                title: {
-                    text: 'Daily total'
+            }
+            return false
+        }
+        
+        $(function() {
+            $('#container').highcharts('StockChart', {
+                scrollbar: {
+                    enabled: true
                 },
-                min: 0
-            },
-            tooltip: {
-                headerFormat: '<b>{series.name}</b><br>',
-                pointFormat: '{point.x:%e. %b}: {point.y:.2f}'
-            },
-    
-            plotOptions: {
-                spline: {
-                    marker: {
-                        enabled: true
-                    }
-                }
-            },
-    
-            series: [
+                navigator: {
+                    enabled: true
+                },
+                series: [
                 {% for field in country_impressions_data %}
                 {
-                    name: '{{field.0}}',
-                    data: [
-                        {% for datum in field.1 %}
-                        [{{datum.0}}, {{datum.1}}],
-                        {% endfor %}
-                        ]
+                    name: '{{ field.0 }}',
+                    data: impressions_data['{{ field.0 }}']
                 },
                 {% endfor %}
-            ]
+                ]
+            });
+        
+            $('#update_chart').click(function() {
+
+                var chart = $('#container').highcharts();
+                var buttons = document.getElementsByClassName("choice")
+                
+                for (x=0;x<buttons.length;x++) {
+                    
+                    var isChecked = buttons[x].checked
+                    var choice = buttons[x].value;
+                    var exists = seriesExists(choice)
+                    
+                    if(isChecked && !exists){
+                        console.log('adding ' + choice)
+                        var series = chart.addSeries({
+                            name: choice,
+                            data: impressions_data[choice]
+                        });
+                    }
+                    if(!isChecked && exists){
+                        console.log('removing ' + choice)
+                        for (i=0;i<chart.series.length;i++) {
+                            if (chart.series[i].name == choice) {
+                                chart.series[i].remove()
+                            }
+                        }
+                    }
+                }
+            });
         });
-    });
-    
-    
+        
     </script>
     
     
