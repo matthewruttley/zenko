@@ -81,17 +81,29 @@
                             </select>
                         </div>
                     </div>
+                    <div class="col-md-3 col-sm-3">
+                        <br>
+                        <div class="form-group">
+                            <button class='btn btn-primary' id='filter_country' onclick='filter_country_overview_by_country()'>Filter</button>
+                        </div>
+                    </div>
                 </div>
                 <div class='row'>
-                    <div id="container" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
-                    <div id='control_box'>
-                        <form action="">
-                            {% for field in country_impressions_data %}
-                            <label class="checkbox-inline">
-                                <input type="checkbox" class='choice' id="{{field.0}}" name="{{field.0}}" value="{{field.0}}" checked> {{field.0}}
-                            </label>
-                            {% endfor %}
-                        </form>
+                    <div class='col-md-12 col-sm-12'>
+                        <div id="container" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div class='col-md-9 col-sm-3'>
+                        <div id='control_box'>
+                            <form action="">
+                                {% for field in country_impressions_data %}
+                                <label class="checkbox-inline">
+                                    <input type="checkbox" class='choice' id="{{field.0}}" name="{{field.0}}" value="{{field.0}}" checked> {{field.0}}
+                                </label>
+                                {% endfor %}
+                            </form>
+                        </div>
                     </div>
                 </div>
                 

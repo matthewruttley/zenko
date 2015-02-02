@@ -158,7 +158,14 @@ function download_xls() {
 	form.submit()
 }
 
-
+function filter_country_overview_by_country() {
+	country = document.getElementById("countries").value
+	if (country == "All Countries") {
+		location.href = "/countries"
+	}else{
+		location.href = "/countries?country=" + country
+	}
+}
 
 
 
