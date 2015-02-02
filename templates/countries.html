@@ -58,29 +58,46 @@
     </nav>
 
     <div class="container-fluid">
-      <div class="row">
-        <div class="col-sm-2 col-md-2 sidebar">
-          <ul class="nav nav-sidebar">
-            <!-- A list of all clients -->
-            {% for c in clients %}
-            <li{%if c == client %} class="active"{%endif%}><a href="/tile?client={{c}}&locale=All%20Locales">{{c}}</a></li>
-            {% endfor %}
-          </ul>
-        </div>
-        <div class="col-sm-9 col-sm-offset-2 col-md-10 col-md-offset-2 main">
-            <div id="container" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
-            
-            <div id='control_box'>
-                <form action="">
-                    {% for field in country_impressions_data %}
-                    <label class="checkbox-inline">
-                        <input type="checkbox" class='choice' id="{{field.0}}" name="{{field.0}}" value="{{field.0}}" checked> {{field.0}}
-                    </label>
+        <div class="row">
+            <div class="col-sm-2 col-md-2 sidebar">
+                <ul class="nav nav-sidebar">
+                    <!-- A list of all clients -->
+                    {% for c in clients %}
+                    <li{%if c == client %} class="active"{%endif%}><a href="/tile?client={{c}}&locale=All%20Locales">{{c}}</a></li>
                     {% endfor %}
-                </form>
+                </ul>
+            </div>
+            <div class="col-sm-9 col-sm-offset-2 col-md-10 col-md-offset-2 main">
+                
+                <div class='row'>
+                    <div class="col-md-2 col-md-offset-3 col-sm-2">
+                        <br>
+                        <div class="form-group">
+                            <select class="form-control" id='countries'>
+                                {% if country %}<option value="{{country}}">{{country}}</option>{% endif %}
+                                <option value="All Countries">All Countries</option>
+                                {% for country in countries %}
+                                <option value="{{country}}">{{country}}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class='row'>
+                    <div id="container" style="min-width: 310px; height: 500px; margin: 0 auto"></div>
+                    <div id='control_box'>
+                        <form action="">
+                            {% for field in country_impressions_data %}
+                            <label class="checkbox-inline">
+                                <input type="checkbox" class='choice' id="{{field.0}}" name="{{field.0}}" value="{{field.0}}" checked> {{field.0}}
+                            </label>
+                            {% endfor %}
+                        </form>
+                    </div>
+                </div>
+                
             </div>
         </div>
-      </div>
     </div>
 
     <script>
