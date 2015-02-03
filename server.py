@@ -70,8 +70,11 @@ def show_daily_impressions():
 		client = [x[1] for x in meta_data if x[0] == 'title'][0]
 		specific_tile = tile_id
 	
+	#convert the data to be graph-able
+	graph = redshift.convert_impressions_data_for_graph(impressions_data)
+	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile, impressions_data_graph=graph)
 
 @app.route('/country_impressions')
 def show_country_impressions():
@@ -241,12 +244,14 @@ def show_countries():
 	#get a list of clients for the side bar
 	clients = redshift.get_sponsored_client_list(cache)
 	
+	#get all possible countries for the dropdown
+	countries = redshift.get_all_countries(cache)
+	
 	#get country impressions data
 	country = request.args.get("country")
-	if not country: country = "United States"
 	country_impressions_data = redshift.get_country_impressions_data(cursor, country=country)
 	
-	return render_template("countries.html", clients=clients, country_impressions_data=country_impressions_data, country=country)
+	return render_template("countries.html", clients=clients, country_impressions_data=country_impressions_data, country=country, countries=countries)
 
 @app.route('/')
 def show_main_page():

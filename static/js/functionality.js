@@ -167,6 +167,28 @@ function filter_country_overview_by_country() {
 	}
 }
 
+function seriesExists(series_name){
+	//Does a series exist on the chart?
+	var series = $("#container").highcharts().series
+	for (i=0;i<series.length;i++) {
+		if (series[i].name == series_name) {
+			return true
+		}
+	}
+	return false
+}
+
+function set_checkbox_label_colors() {
+	var series = $("#container").highcharts().series
+	for (i=0;i<series.length;i++) {
+		if (series[i].name != "Navigator") {
+			label_name = series[i].name
+			console.log("looking up " + label_name)
+			document.getElementById(label_name).parentElement.style.color = series[i].color
+		}
+	}
+}
+
 
 
 

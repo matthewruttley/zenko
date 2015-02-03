@@ -94,7 +94,7 @@
                     </div>
                 </div>
                 <div class='row'>
-                    <div class='col-md-9 col-sm-3'>
+                    <div class='col-md-9 col-md-offset-1 col-sm-3'>
                         <div id='control_box'>
                             <form action="">
                                 {% for field in country_impressions_data %}
@@ -120,28 +120,6 @@
                 [{{datum.0}}, {{datum.1}}],{% endfor %}
             ],
             {% endfor %}
-        }
-        
-        function seriesExists(series_name){
-            //Does a series exist on the chart?
-            var series = $("#container").highcharts().series
-            for (i=0;i<series.length;i++) {
-                if (series[i].name == series_name) {
-                    return true
-                }
-            }
-            return false
-        }
-        
-        function set_checkbox_label_colors() {
-            var series = $("#container").highcharts().series
-            for (i=0;i<series.length;i++) {
-                if (series[i].name != "Navigator") {
-                    label_name = series[i].name
-                    console.log("looking up " + label_name)
-                    document.getElementById(label_name).parentElement.style.color = series[i].color
-                }
-            }
         }
         
         $(function() {

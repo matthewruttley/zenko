@@ -14,6 +14,7 @@ from datetime import datetime
 from codecs import open as copen
 import psycopg2
 from login import login_string #login details, not committed
+from pdb import set_trace
 
 ############# Basic caching and setup ##################
 
@@ -183,6 +184,14 @@ def get_countries_per_client(cache, client=False, locale=False):
 def get_countries_per_tile(cache, tile_id):
 	"""Given a tile id it returns the country list"""
 	return cache[tile_id]['countries']
+
+def get_all_countries(cache):
+	"""Just gets all possible countries"""
+	countries = set()
+	for tile, attribs in cache.iteritems():
+		countries.update(attribs['countries'])
+	countries = sorted(list(countries))
+	return countries
 
 def get_client_attributes(cursor, cache, client):
 	"""For a given tile id, gets all possible locales, countries and campaign start dates.
@@ -394,24 +403,21 @@ def get_locale_impressions_data(cursor, client=False, start_date=False, end_date
 	
 	return impressions
 
-def get_country_impressions_data(cursor, country='United States'):
+def get_country_impressions_data(cursor, country=False):
 	"""Gets country impressions data"""
-
-	query = """SELECT
-				date,
-				SUM (impressions) AS impressions,
-				SUM (clicks) AS clicks,
-				SUM (pinned) AS pins,
-				SUM (blocked) AS blocks
-			FROM
-				impression_stats_daily
-			INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
-			WHERE 
-				country_name = '{0}'
-			GROUP BY
-				date
-			ORDER BY
-				date""".format(country)
+	
+	if country:
+		query = """SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+				FROM impression_stats_daily
+				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+				WHERE country_name = '{0}'
+				GROUP BY date
+				ORDER BY date""".format(country)
+	else:
+		query = """SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+				FROM impression_stats_daily
+				GROUP BY date
+				ORDER BY date"""
 	
 	cursor.execute(query)
 	data = cursor.fetchall()
@@ -454,7 +460,25 @@ def get_country_impressions_data(cursor, country='United States'):
 			js_data[n][1].append([list_of_dates[row_index], cell])
 	
 	return js_data
+
+######### Data transformations ###########
+
+def convert_impressions_data_for_graph(data):
+	"""Converts the output of get_daily_impressions_data to a format useful in Highcharts"""
+	#data arrives as a list of lists, each sublist having 6 elements
 	
+	#way too much code repetition here
+	column_names = ['Date', "Impressions", "Clicks", "CTR", "Pins", "Blocks"]
+	list_of_dates = ["Date.UTC({0}, {1}, {2})".format(x[0].year, x[0].month-1, x[0].day) for x in data]
+	js_data = [[x, []] for x in column_names if x != 'Date']
+	
+	for row_index, row in enumerate(data):
+		for n, cell in enumerate(row[1:-1]): #ignore date
+			if (type(cell) == str) and cell.endswith("%"):
+				cell = cell[:-1]
+			js_data[n][1].append([list_of_dates[row_index], cell])
+	
+	return js_data
 
 ######### Other SQLish meta-data #########
 
