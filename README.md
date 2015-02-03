@@ -1,6 +1,7 @@
 # zenko
 * Straightforward, simple sponsored tiles/redshift reporting system
 * "Zenko" (善狐)  means good/helpful fox in Japanese: https://en.wikipedia.org/wiki/Kitsune#Characteristics
+* There's a blog post: http://ikigomu.com/?p=256 about how the Excel download feature works. I've tried to comment the code as much as possible, but send me an email if something doesn't work/make sense.
 
 # Installation:
 1. > cd ~/Documents
