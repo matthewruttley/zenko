@@ -293,15 +293,15 @@
                   <tbody>
                     {% if countries_impressions_data %}
                       {% for day in countries_impressions_data %}
-                      <tr><td>{{day.0}}</td><td>{{day.1}}</td><td>{{day.2}}</td><td>{{day.3}}</td><td>{{day.4}}</td><td>{{day.5}}</td></tr>
+                      <tr><td>{{day.0}}</td><td>{{day.1|thousands}}</td><td>{{day.2|thousands}}</td><td>{{day.3}}</td><td>{{day.4|thousands}}</td><td>{{day.5|thousands}}</td></tr>
                       {% endfor %}
                     {% elif locale_impressions_data %}
                       {% for day in locale_impressions_data %}
-                      <tr><td>{{day.0}}</td><td>{{day.1}}</td><td>{{day.2}}</td><td>{{day.3}}</td><td>{{day.4}}</td><td>{{day.5}}</td></tr>
+                      <tr><td>{{day.0}}</td><td>{{day.1|thousands}}</td><td>{{day.2|thousands}}</td><td>{{day.3}}</td><td>{{day.4|thousands}}</td><td>{{day.5|thousands}}</td></tr>
                       {% endfor %}
                     {% else %}
                       {% for day in impressions_data %}
-                      <tr><td data-dateformat="YYYY-MM-DD">{{day.0}}</td><td>{{day.1}}</td><td>{{day.2}}</td><td>{{day.3}}</td><td>{{day.4}}</td><td>{{day.5}}</td></tr>
+                      <tr><td data-dateformat="YYYY-MM-DD">{{day.0}}</td><td>{{day.1|thousands}}</td><td>{{day.2|thousands}}</td><td>{{day.3}}</td><td>{{day.4|thousands}}</td><td>{{day.5|thousands}}</td></tr>
                       {% endfor %}
                     {% endif %}
                   </tbody>

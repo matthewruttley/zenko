@@ -137,10 +137,24 @@
                 navigator: {
                     enabled: true
                 },
+                yAxis: [
+                        {%for field in country_impressions_data%}
+                        {
+                            labels: {
+                                enabled: false,
+                            },
+                            title: {
+                                text: null,
+                            },
+                            min: 0,
+                        },
+                        {%endfor%}
+                        ],
                 series: [
                 {% for field in country_impressions_data %}
                 {
                     name: '{{ field.0 }}',
+                    yAxis: {{loop.index0}},
                     data: impressions_data['{{ field.0 }}']
                 },
                 {% endfor %}

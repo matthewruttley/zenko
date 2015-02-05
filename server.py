@@ -14,12 +14,21 @@ app = Flask(__name__)
 cursor = redshift.cursor()
 cache = redshift.build_tiles_cache(cursor)
 
+#Some custom filter stuff
+
+@app.template_filter('thousands')
+def add_commas(number):
+	"""1234567890 ---> 1,234,567,890"""
+	return "{:,}".format(number)
+
+#Views
+
 @app.route('/download_excel', methods=['GET', 'POST'])
 def download_excel():
 	"""Creates a file download from recieved post information"""
 	data = request.form["data"]
-	data = data.split(",")
-	data = [data[x:x+6] for x in xrange(0, len(data), 6)]
+	data = data.split("###")
+	data = [[y.replace(",", "") for y in x.split("#")] for x in data]
 	data = "\n".join([','.join(x) for x in data])
 	#filename = request.form["filename"]
 	response = make_response(data)

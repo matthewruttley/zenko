@@ -100,7 +100,7 @@ function convert_table_to_array() {
 	for (i=0;i<header_cells.length;i++) {
 		header.push(header_cells[i].textContent)
 	}
-	data.push(header)
+	data.push(header.join("#"))
 	
 	//get each row
 	row_cells = itable.children[1].children
@@ -111,12 +111,12 @@ function convert_table_to_array() {
 		//get each cell in the row
 		row_content = []
 		for (j=0;j<row.length;j++) {
-			cell_content = row[j].textContent.replace(",", "")
+			cell_content = row[j].textContent//.replace(",", "")
 			row_content.push(cell_content)
 		}
-		data.push(row_content)
+		data.push(row_content.join("#"))
 	}
-	return data
+	return data.join("###")
 }
 
 function download_xls() {
