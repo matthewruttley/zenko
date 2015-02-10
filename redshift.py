@@ -12,9 +12,12 @@ from os import path
 from json import load, dump
 from datetime import datetime
 from codecs import open as copen
+from pdb import set_trace
+from re import search
+from itertools import chain
+
 import psycopg2
 from login import login_string #login details, not committed
-from pdb import set_trace
 
 ############# Basic caching and setup ##################
 
@@ -207,6 +210,160 @@ def get_client_attributes(cursor, cache, client):
 	attributes['locales'] = get_locales_per_client(cache, client)
 	
 	return attributes
+
+def get_mozilla_tiles(cache):
+	"""Finds mozilla tiles. This is complicated because there is currently no separate Advertiser/Client table"""
+	
+	#essentially we want to produce a sub-menu (pop-out style)
+	#that lets the user either select all mozilla tiles or a particular type
+	
+	# Matching different types of tiles:
+	
+	mozilla_tiles = [
+		{
+			"name": "Customize Firefox",
+			"url_must_match": ["fastestfirefox.com", "https://addons.mozilla.org/en-US/android/"]
+		},
+		{
+			"name": "Firefox 10th Anniversary",
+			"url_must_match": ["https://www.mozilla.com/firefox/independent/?utm_source=directory-tiles&utm_medium=directory-tiles&utm_campaign=FX10"]
+		},
+		{
+			'name': "Firefox for Android",
+			'url_must_match': ['https://play.google.com/store/apps/details?id=org.mozilla.firefox&referrer=utm_source%3Dmozilla%26utm_medium%3Dbanner%26utm_campaign%3Ddesktop01']
+		},
+		{
+			"name": 'Firefox Help and Support',
+			"title_must_match": ['Firefox Help and Support'],
+		},
+		{
+			"name": "Firefox Marketplace",
+			"url_must_match": ['marketplace.firefox.com']
+		},
+		{
+			"name": "Firefox Sync",
+			"title_must_match": ["Firefox Sync"]
+		},
+		{
+			"name": "Get Smart on Privacy",
+			'url_must_match': ['https://www.mozilla.com/privacy/tips?utm_source=firefox&utm_medium=directorytile&utm_campaign=DPD15']
+		},
+		{
+			"name": "Lightbeam",
+			"title_must_match": ['Lightbeam']
+		},
+		{
+			"name": "Mozilla",
+			"url_must_match": ["https://www.mozilla.com/en-US/?utm_source=directory-tiles&utm_medium=firefox-browser", "https://www.mozilla.org/en-US/?utm_source=directory-tiles&utm_medium=firefox-browser"]
+		},
+		{
+			"name": "Mozilla Advocacy",
+			"title_must_match": ["Mozilla Advocacy"]
+		},
+		{
+			"name": "Mozilla Community",
+			'url_must_match': ['http://contribute.mozilla.org/']
+		},
+		{
+			"name": "Mozilla Developer Network",
+			"url_must_match": ["developer.mozilla.org"]
+		},
+		{
+			"name": "Mozilla Festival",
+			"url_must_match": ["http://2014.mozillafestival.org/"]
+		},
+		{
+			"name": "Mozilla Manifesto",
+			"url_must_match": ["mozilla.org/about/manifesto", "https://www.mozilla.org/en-US/about/manifesto/"]
+		},
+		{
+			"name": "Privacy Principles",
+			'url_must_match': ["http://europe.mozilla.org/privacy/you"]
+		},
+		{
+			"name": "Protect Net Neutrality",
+			"title_must_match": ["Protect Net Neutrality"]
+		},
+		{
+			"name": "Support Mozilla",
+			"title_must_match": ["Support Mozilla"]
+		},
+		{
+			"name": "The Mozilla Project",
+			"title_must_match": ['The Mozilla Project']
+		},
+		{
+			"name": "The Open Standard",
+			'url_must_match': ['https://openstandard.mozilla.org/']
+		},
+		{
+			"name": "Webmaker",
+			'url_must_match': ["https://webmaker.org/"]
+		},
+		{
+			"name": '"A brand new tiles experience"',
+			'url_must_match': ['https://www.mozilla.com/firefox/tiles']
+		}
+	]
+	
+	#make sure ruleset is OK
+	for x in mozilla_tiles:
+		for k, v in x.iteritems():
+			if 'must' in k:
+				if type(v) != list:
+					print "Error in ruleset!"
+					return False
+	
+	#get sponsored tiles first so we know which ones to ignore
+	sponsored = set(get_sponsored_client_list(cache))
+	
+	#find matches
+	for x in range(len(mozilla_tiles)):
+		if len(mozilla_tiles[x]) > 1: #must have some sort of rule definition
+			mozilla_tiles[x]['ids'] = [] #add container
+			
+			print "Processing Rule {0} ({1})".format(x, mozilla_tiles[x]['name'])
+			
+			#number of tests that need passing
+			test_count = len([y for y in mozilla_tiles[x] if 'match' in y])
+			
+			print "Tests to pass: {0}".format(test_count)
+			
+			for tile_id, tile_info in cache.iteritems():
+				tests_passed = 0
+				if 'url_must_match' in mozilla_tiles[x]:
+					for matcher in mozilla_tiles[x]['url_must_match']:
+						if matcher in tile_info['target_url']:
+							tests_passed += 1
+							break
+				
+				if 'title_must_match' in mozilla_tiles[x]:
+					for matcher in mozilla_tiles[x]['title_must_match']:
+						if matcher in tile_info['title']:
+							tests_passed += 1
+							break
+				
+				if tests_passed >= test_count:
+					mozilla_tiles[x]['ids'].append(tile_id)
+					#print tile_id, tile_info['title'], tile_info['target_url']
+			
+			mozilla_tiles[x]['ids'] = set(mozilla_tiles[x]['ids'])
+			print "{0} tiles matched".format(len(mozilla_tiles[x]['ids']))
+	
+	#check that nothing was caught by more than one
+	
+	
+	#output what is left uncategorized
+	already = set(chain.from_iterable([x['ids'] for x in mozilla_tiles if 'ids' in x]))
+	
+	print "Already categorized {0}/{1} tiles".format(len(already), len(cache))
+	
+	for tile_id, tile_info in cache.iteritems():
+		if tile_id not in already:
+			if tile_info['title'] not in sponsored:
+				if tile_info['type'] != 'organic':
+					print tile_id, tile_info['title'], tile_info['target_url']
+	
 
 ########## Querying impressions data ###########
 
