@@ -109,14 +109,17 @@ def get_locales_per_client(cache, client):
 	return locales
 
 def get_sponsored_client_list(cache):
-	"""Gets a list of clients"""
+	"""Gets a list of clients and adds mozilla to the end"""
 	#get all tiles
 	clients = set()
 	for x in cache.itervalues():
 		if x['type'] == "sponsored":
 			if "/" not in x['title']:
 				clients.update([x['title']])
+	
+	clients.update(['Mozilla'])
 	return sorted(list(clients))
+	
 
 def get_tile_meta_data(cache, tile_id):
 	"""Gets the entry for a specific tile in the tiles database and returns it as a list of lists"""
@@ -322,12 +325,12 @@ def get_mozilla_tiles(cache):
 		if len(mozilla_tiles[x]) > 1: #must have some sort of rule definition
 			mozilla_tiles[x]['ids'] = [] #add container
 			
-			print "Processing Rule {0} ({1})".format(x, mozilla_tiles[x]['name'])
+			#print "Processing Rule {0} ({1})".format(x, mozilla_tiles[x]['name'])
 			
 			#number of tests that need passing
 			test_count = len([y for y in mozilla_tiles[x] if 'match' in y])
 			
-			print "Tests to pass: {0}".format(test_count)
+			#print "Tests to pass: {0}".format(test_count)
 			
 			for tile_id, tile_info in cache.iteritems():
 				tests_passed = 0
@@ -348,22 +351,28 @@ def get_mozilla_tiles(cache):
 					#print tile_id, tile_info['title'], tile_info['target_url']
 			
 			mozilla_tiles[x]['ids'] = set(mozilla_tiles[x]['ids'])
-			print "{0} tiles matched".format(len(mozilla_tiles[x]['ids']))
-	
-	#check that nothing was caught by more than one
-	
+			#print "{0} tiles matched".format(len(mozilla_tiles[x]['ids']))
 	
 	#output what is left uncategorized
 	already = set(chain.from_iterable([x['ids'] for x in mozilla_tiles if 'ids' in x]))
 	
-	print "Already categorized {0}/{1} tiles".format(len(already), len(cache))
+	#print "Already categorized {0}/{1} tiles".format(len(already), len(cache))
 	
 	for tile_id, tile_info in cache.iteritems():
 		if tile_id not in already:
 			if tile_info['title'] not in sponsored:
 				if tile_info['type'] != 'organic':
 					print tile_id, tile_info['title'], tile_info['target_url']
-	
+
+	#check that nothing was caught by more than one
+	for tile in mozilla_tiles:
+		for other_tile in mozilla_tiles:
+			if tile['name'] != other_tile['name']:
+				same = set(tile['ids']).intersection(other_tile['ids'])
+				if len(same) > 0:
+					print "Warning! {0} are in {1} and {2}".format(same, tile['name'], other_tile['name'])
+
+	return mozilla_tiles
 
 ########## Querying impressions data ###########
 

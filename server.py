@@ -234,17 +234,40 @@ def show_creative_selection_page():
 	client = request.args.get("client")
 	locale = request.args.get("locale")
 	
-	#get a list of possible locales and countries
-	attributes = redshift.get_client_attributes(cursor, cache, client)
-	
-	#get a list of all the tiles in that locale
-	if locale == "All Locales":
-		tiles = redshift.get_tiles_per_client(cache, client)
+	if client == "Mozilla": #special case since there are so many different types
+		
+		mozilla_tiles = redshift.get_mozilla_tiles(cache) #get a list of mozilla tile IDs per campaign
+		
+		for tile in mozilla_tiles:
+			tiles = []
+			for x in tile['ids']:
+				tiles.append([x, cache[x]['title'], cache[x]['target_url'], cache[x]['locale'], cache[x]['created_at']])
+			tile['tiles'] = sorted(tiles)
+		
+		meta = []
+		for x in mozilla_tiles:
+			meta.append(
+				{
+					"name": x['name'],
+					"tiles": len(x['tiles']),
+					"locales": len(set([y[2] for y in x['tiles']]))
+				}
+			)
+		
+		return render_template("index.html", clients=clients, client=client, creative=mozilla_tiles, mozilla=True, mozilla_campaign_meta_data=meta)
+		
 	else:
-		tiles = redshift.get_tiles_from_client_in_locale(cache, client, locale)
+		#get a list of possible locales and countries
+		attributes = redshift.get_client_attributes(cursor, cache, client)
+		
+		#get a list of all the tiles in that locale
+		if locale == "All Locales":
+			tiles = redshift.get_tiles_per_client(cache, client)
+		else:
+			tiles = redshift.get_tiles_from_client_in_locale(cache, client, locale)
 	
-	#render the template
-	return render_template("index.html", clients=clients, attributes=attributes, client=client, creative=tiles, locale=locale)
+		#render the template
+		return render_template("index.html", clients=clients, attributes=attributes, client=client, creative=tiles, locale=locale)
 
 @app.route("/countries")
 def show_countries():
