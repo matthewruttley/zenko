@@ -23,7 +23,7 @@
     <link href="/static/css/iThing.css" rel="stylesheet">
     {% endif %}
     
-    {% if countries_impressions_data or locale_impressions_data or impressions_data %}
+    {% if countries_impressions_data or locale_impressions_data or impressions_data or mozilla %}
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
     <script src="http://code.highcharts.com/stock/highstock.js"></script>
     <script src="http://code.highcharts.com/modules/exporting.js"></script>
@@ -76,7 +76,13 @@
         
           {% if not main_page %}
           <h2 class="sub-header">
+            
+            {% if mozilla or (client == 'Mozilla') %}
+            Internal Mozilla Tiles{%if campaign %}: {{campaign}}{% endif %}
+            {% else %}
             Client: <span id='tile_name'>{{client}}</span>
+            {% endif %}
+            
             {% if not creative %}
               {%if specific_tile%}(<span id='tile_id'>{{specific_tile}}</span>){%endif%}
               {%if locale%}(specifically in the <span id='locale'>{{locale}}</span> locale){%endif%}
@@ -113,18 +119,31 @@
           
           {% if creative %}
           {% if mozilla %}
+          <!--
           <div class='row'>
-            <div class='col-md-12 col-sm-6'>
+            <div class='col-md-5 col-sm-6'>
+              <button class='btn btn-primary' href='javascript:alert("coming soon")'>View all Mozilla tile data on the same graph</button>
+            </div>
+          </div>
+          -->
+          <br>
+          <div class='row'>
+            <div class='col-md-10 col-sm-6'>
               <table class='table table-striped table-hover sortable'>
                 <thead>
                   <th>Campaign</th>
-                  <th>Tiles</th>
-                  <th>Locales</th>
+                  <th>Actions</th>
+                  <th># of Tiles</th>
+                  <th># of Locales</th>
                 </thead>
                 <tbody>
                   {% for campaign in mozilla_campaign_meta_data %}
                   <tr>
                     <td>{{campaign.name}}</td>
+                    <td>
+                      <a role="button" class='btn btn-default' href='/daily_impressions?client=Mozilla&campaign={{campaign.name}}'>Show compiled data</a>&nbsp;
+                      <a role="button" class='btn btn-default' href='#{{campaign.name}}'>Select a specific tile</a>
+                    </td>
                     <td>{{campaign.tiles}}</td>
                     <td>{{campaign.locales}}</td>
                   </tr>
@@ -137,6 +156,7 @@
           {% for campaign in creative %}
           <div class='row'>
             <div class='col-md-12 col-sm-6'>
+              <a class='jump_point' name='{{campaign.name}}'></a>
               <h3>Campaign: {{ campaign.name }}</h3>
               <div class="table-responsive">
                 <table class='table table-striped table-hover sortable'>
@@ -152,7 +172,7 @@
                     {% for tile in campaign.tiles %}
                     <tr>
                       <td>{{loop.index}}</td>
-                      <td><a href="/daily_impressions?tile_id={{tile.id}}">{{tile.0}}</a></td>
+                      <td><a href="/daily_impressions?tile_id={{tile.0}}">{{tile.0}}</a></td>
                       <td>{{tile.1}}</td>
                       <td>{{tile.2}}</td>
                       <td>{{tile.3}}</td>
@@ -248,12 +268,15 @@
               <li role="presentation"><a href="/locale_impressions?tile_id={{tile_id}}">Locale-by-locale</a></li>
               {% else %}
               <li role="presentation" class="active"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Day-by-day</a></li>
+              {% if client != 'Mozilla' %}
               <li role="presentation"><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Country-by-country</a></li>
               <li role="presentation"><a href="/locale_impressions?client={{client}}">Locale-by-locale</a></li>
+              {% endif %}
               {% endif %}
             </ul>
           </div>
           <div class='row'>
+            {% if client != "Mozilla" %}
             <div class="col-md-2 col-md-offset-3 col-sm-2">
               <br>
               <div class="form-group">
@@ -266,10 +289,11 @@
                 </select>
               </div>
             </div>
+            {% endif %}
             <div class="col-md-4 col-sm-4">
               <br>
               <div class="form-group">
-                <button class='btn btn-primary' id='filter_creative' onclick='filter_creative_by_country()'>Filter</button>
+                {%if client != "Mozilla"%}<button class='btn btn-primary' id='filter_creative' onclick='filter_creative_by_country()'>Filter</button>{%endif%}
                 <button class='btn' id='filter_creative' onclick='download_xls()'>Download for Excel</button>
               </div>
             </div>

@@ -93,134 +93,9 @@ def build_tiles_cache(cursor):
 	del cache['last_updated'] #not useful when querying
 	return cache
 
-######### Querying client/tile data ###########
-
-def get_all_locales(cache):
-	"""Gets a list of all locales and prints them out to the terminal"""
-	locales = sorted(list(set([x['locale'] for x in cache.itervalues()])))
-	return locales
-
-def get_locales_per_client(cache, client):
-	"""Gets a list of locales that apply to a particular tile"""
-	locales = set()
-	for tile in cache.itervalues():
-		if client in tile['title']:
-			locales.update([tile['locale']])
-	return locales
-
-def get_sponsored_client_list(cache):
-	"""Gets a list of clients and adds mozilla to the end"""
-	#get all tiles
-	clients = set()
-	for x in cache.itervalues():
-		if x['type'] == "sponsored":
-			if "/" not in x['title']:
-				clients.update([x['title']])
-	
-	clients.update(['Mozilla'])
-	return sorted(list(clients))
-	
-
-def get_tile_meta_data(cache, tile_id):
-	"""Gets the entry for a specific tile in the tiles database and returns it as a list of lists"""
-	metadata_table = sorted([list(x) for x in cache[tile_id].items()])
-	metadata_table[1][1] = len(metadata_table[1][1]) #collapse countries
-	metadata_table.insert(0, ["id", tile_id]) #insert id
-	return metadata_table
-
-def get_client_meta_data(cache, client=False, locale=False):
-	"""Compiles all the client tiles entries in the tiles database and returns them as a list of lists to be entabulated"""
-	
-	data = {
-		'Tile IDs': [],
-		'Locales': set(),
-		'Client start date': datetime.now(),
-		'client': client
-	}
-	client = client.lower()
-	
-	for tile_id, tile in cache.iteritems():
-		if client in tile['title'].lower():
-			if locale:
-				if locale != tile['locale']:
-					continue
-			data['Tile IDs'].append(tile_id)
-			data["Locales"].update([tile['locale']])
-			created_at = datetime.strptime(tile['created_at'], "%Y-%m-%d %H:%M:%S.%f")
-			if data['Client start date'] > created_at:
-				data['Client start date'] = created_at
-	
-	#now turn into a list of lists
-	data["Locales"] = ", ".join(sorted(list(data['Locales'])))
-	data['Tile IDs'] = ", ".join(sorted(data['Tile IDs']))
-	data = sorted(data.items())
-	return data
-
-def get_tiles_from_client_in_locale(cache, client, locale):
-	"""Gets a list of tiles that run in a particular locale for a particular client"""
-	tiles = []
-	for tile_id, tile in cache.iteritems():
-		if client in tile['title']:
-			if locale == tile['locale']:
-				tile['id'] = tile_id
-				tiles.append(tile)
-	return tiles
-
-def get_tiles_per_client(cache, client):
-	"""Gets a list of tiles for a particular client"""
-	tiles = []
-	for tile_id, tile in cache.iteritems():
-		if client in tile['title']:
-			tile['id'] = tile_id
-			tiles.append(tile)
-	return tiles
-
-def get_countries_per_client(cache, client=False, locale=False):
-	"""Gets a list of countries that a particular tile ID ran in"""
-	countries = set()
-	for x in cache.itervalues():
-		if client in x['title']:
-			if locale:
-				if locale == x['locale']:
-					countries.update(x['countries'])
-			else:
-				countries.update(x['countries'])
-	return sorted(countries)
-
-def get_countries_per_tile(cache, tile_id):
-	"""Given a tile id it returns the country list"""
-	return cache[tile_id]['countries']
-
-def get_all_countries(cache):
-	"""Just gets all possible countries"""
-	countries = set()
-	for tile, attribs in cache.iteritems():
-		countries.update(attribs['countries'])
-	countries = sorted(list(countries))
-	return countries
-
-def get_client_attributes(cursor, cache, client):
-	"""For a given tile id, gets all possible locales, countries and campaign start dates.
-	This is useful for the drop down menus.
-	Accepts an integer tile id and returns a dictionary of lists"""
-	
-	attributes = {
-		'locales': [],
-		'countries': [],
-	}
-	
-	attributes['countries'] = get_countries_per_client(cache, client)
-	attributes['locales'] = get_locales_per_client(cache, client)
-	
-	return attributes
-
-def get_mozilla_tiles(cache):
-	"""Finds mozilla tiles. This is complicated because there is currently no separate Advertiser/Client table"""
-	
-	#essentially we want to produce a sub-menu (pop-out style)
-	#that lets the user either select all mozilla tiles or a particular type
-	
-	# Matching different types of tiles:
+def build_mozilla_tile_list(cache):
+	"""Finds mozilla tiles in the cache. This is complicated because there is currently no separate Advertiser/Client table.
+	Returns an object with them"""
 	
 	mozilla_tiles = [
 		{
@@ -371,15 +246,177 @@ def get_mozilla_tiles(cache):
 				same = set(tile['ids']).intersection(other_tile['ids'])
 				if len(same) > 0:
 					print "Warning! {0} are in {1} and {2}".format(same, tile['name'], other_tile['name'])
-
+	
 	return mozilla_tiles
+
+######### Querying client/tile data ###########
+
+def get_all_locales(cache):
+	"""Gets a list of all locales and prints them out to the terminal"""
+	locales = sorted(list(set([x['locale'] for x in cache.itervalues()])))
+	return locales
+
+def get_locales_per_client(cache, client):
+	"""Gets a list of locales that apply to a particular tile"""
+	locales = set()
+	for tile in cache.itervalues():
+		if client in tile['title']:
+			locales.update([tile['locale']])
+	return locales
+
+def get_sponsored_client_list(cache):
+	"""Gets a list of clients and adds mozilla to the end"""
+	#get all tiles
+	clients = set()
+	for x in cache.itervalues():
+		if x['type'] == "sponsored":
+			if "/" not in x['title']:
+				clients.update([x['title']])
+	
+	clients.update(['Mozilla'])
+	return sorted(list(clients))
+
+def get_tile_meta_data(cache, tile_id):
+	"""Gets the entry for a specific tile in the tiles database and returns it as a list of lists"""
+	metadata_table = sorted([list(x) for x in cache[tile_id].items()])
+	metadata_table[1][1] = len(metadata_table[1][1]) #collapse countries
+	metadata_table.insert(0, ["id", tile_id]) #insert id
+	return metadata_table
+
+def get_mozilla_meta_data(cache, mozilla_tiles, campaign_name, locale=False):
+	"""Compiles all the tile entries for a campaign in the moz tiles object and returns them as a list of lists to be entabulated"""
+	data = {
+		'Tile IDs': [],
+		'Locales': set(),
+		'Campaign start date': datetime.now(),
+		'Campaign': campaign_name
+	}
+	
+	for campaign in mozilla_tiles:
+		if campaign['name'] == campaign_name:
+			for tile_id in campaign['ids']:
+				tile = cache[tile_id]
+				if locale:
+					if locale != tile['locale']:
+						continue
+				data['Tile IDs'].append(tile_id)
+				data["Locales"].update([tile['locale']])
+				created_at = datetime.strptime(tile['created_at'], "%Y-%m-%d %H:%M:%S.%f")
+				if data['Campaign start date'] > created_at:
+					data['Campaign start date'] = created_at
+	
+	#now turn into a list of lists
+	data["Locales"] = ", ".join(sorted(list(data['Locales'])))
+	data['Tile IDs'] = ", ".join(sorted(data['Tile IDs']))
+	data = sorted(data.items())
+	return data
+
+def get_client_meta_data(cache, client=False, locale=False):
+	"""Compiles all the client tiles entries in the tiles database and returns them as a list of lists to be entabulated"""
+	
+	data = {
+		'Tile IDs': [],
+		'Locales': set(),
+		'Client start date': datetime.now(),
+		'client': client
+	}
+	client = client.lower()
+	
+	for tile_id, tile in cache.iteritems():
+		if client in tile['title'].lower():
+			if locale:
+				if locale != tile['locale']:
+					continue
+			data['Tile IDs'].append(tile_id)
+			data["Locales"].update([tile['locale']])
+			created_at = datetime.strptime(tile['created_at'], "%Y-%m-%d %H:%M:%S.%f")
+			if data['Client start date'] > created_at:
+				data['Client start date'] = created_at
+	
+	#now turn into a list of lists
+	data["Locales"] = ", ".join(sorted(list(data['Locales'])))
+	data['Tile IDs'] = ", ".join(sorted(data['Tile IDs']))
+	data = sorted(data.items())
+	return data
+
+def get_tiles_from_client_in_locale(cache, client, locale):
+	"""Gets a list of tiles that run in a particular locale for a particular client"""
+	tiles = []
+	for tile_id, tile in cache.iteritems():
+		if client in tile['title']:
+			if locale == tile['locale']:
+				tile['id'] = tile_id
+				tiles.append(tile)
+	return tiles
+
+def get_tiles_per_client(cache, client):
+	"""Gets a list of tiles for a particular client"""
+	tiles = []
+	for tile_id, tile in cache.iteritems():
+		if client in tile['title']:
+			tile['id'] = tile_id
+			tiles.append(tile)
+	return tiles
+
+def get_countries_per_client(cache, client=False, locale=False):
+	"""Gets a list of countries that a particular tile ID ran in"""
+	countries = set()
+	for x in cache.itervalues():
+		if client in x['title']:
+			if locale:
+				if locale == x['locale']:
+					countries.update(x['countries'])
+			else:
+				countries.update(x['countries'])
+	return sorted(countries)
+
+def get_countries_per_tile(cache, tile_id):
+	"""Given a tile id it returns the country list"""
+	return cache[tile_id]['countries']
+
+def get_all_countries(cache):
+	"""Just gets all possible countries"""
+	countries = set()
+	for tile, attribs in cache.iteritems():
+		countries.update(attribs['countries'])
+	countries = sorted(list(countries))
+	return countries
+
+def get_client_attributes(cursor, cache, client):
+	"""For a given tile id, gets all possible locales, countries and campaign start dates.
+	This is useful for the drop down menus.
+	Accepts an integer tile id and returns a dictionary of lists"""
+	
+	attributes = {
+		'locales': [],
+		'countries': [],
+	}
+	
+	attributes['countries'] = get_countries_per_client(cache, client)
+	attributes['locales'] = get_locales_per_client(cache, client)
+	
+	return attributes
 
 ########## Querying impressions data ###########
 
-def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all', locale=False):
+def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all', locale=False, tile_ids=False):
 	"""Gets aggregated impressions grouped by day"""
 	
-	if client: #get all tiles
+	if tile_ids:
+		#Compile together results from several tile ids, usually in the same campaign
+		if len(tile_ids) == 1:
+			where = "= {0}".format(list(tile_ids)[0])
+		else:
+			where = ", ".join(tile_ids)
+			where = "in ({0})".format(where)
+		query = """
+			SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+			FROM impression_stats_daily
+			WHERE tile_id {0}
+			GROUP BY date
+			ORDER BY date ASC
+		""".format(where)
+	elif client: #get all tiles
 		if country == "all": #all countries
 			if locale:
 				query = """

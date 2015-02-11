@@ -131,3 +131,11 @@ body {
 #update_chart {
   margin-left: 10px;
 }
+
+.jump_point {
+  text-decoration: none;
+  color:black;
+  display: block;
+  position: relative;
+  top: -50px;
+}

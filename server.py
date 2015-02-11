@@ -13,6 +13,7 @@ app = Flask(__name__)
 #set up database connection
 cursor = redshift.cursor()
 cache = redshift.build_tiles_cache(cursor)
+mozilla_tiles = redshift.build_mozilla_tile_list(cache)
 
 #Some custom filter stuff
 
@@ -43,6 +44,7 @@ def show_daily_impressions():
 	country = request.args.get("country")
 	client = request.args.get("client")
 	locale = request.args.get("locale")
+	campaign = request.args.get("campaign")
 	
 	#get a list of clients for the side bar
 	clients = redshift.get_sponsored_client_list(cache)
@@ -55,20 +57,27 @@ def show_daily_impressions():
 	
 	#get some daily data
 	if client:
-		if country:
-			if locale:
-				impressions_data = redshift.get_daily_impressions_data(cursor, client=client, country=country, locale=locale)
-			else:
-				impressions_data = redshift.get_daily_impressions_data(cursor, client=client, country=country)
+		if client == 'Mozilla':
+			if campaign: #special case since mozilla tiles are allowed to have particular campaigns
+				tiles = [x['ids'] for x in mozilla_tiles if x['name'] == campaign][0]
+				impressions_data = redshift.get_daily_impressions_data(cursor, tile_ids=tiles)
+				meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles, campaign_name=campaign)
+				client = 'Mozilla'
 		else:
-			if locale:
-				impressions_data = redshift.get_daily_impressions_data(cursor, client=client, locale=locale)
+			if country:
+				if locale:
+					impressions_data = redshift.get_daily_impressions_data(cursor, client=client, country=country, locale=locale)
+				else:
+					impressions_data = redshift.get_daily_impressions_data(cursor, client=client, country=country)
 			else:
-				impressions_data = redshift.get_daily_impressions_data(cursor, client=client)
-		if locale:
-			meta_data = redshift.get_client_meta_data(cache, client=client, locale=locale)
-		else:
-			meta_data = redshift.get_client_meta_data(cache, client=client)
+				if locale:
+					impressions_data = redshift.get_daily_impressions_data(cursor, client=client, locale=locale)
+				else:
+					impressions_data = redshift.get_daily_impressions_data(cursor, client=client)
+			if locale:
+				meta_data = redshift.get_client_meta_data(cache, client=client, locale=locale)
+			else:
+				meta_data = redshift.get_client_meta_data(cache, client=client)
 		specific_tile = False
 	else:
 		if country:
@@ -83,7 +92,7 @@ def show_daily_impressions():
 	graph = redshift.convert_impressions_data_for_graph(impressions_data)
 	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile, impressions_data_graph=graph)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile, impressions_data_graph=graph, campaign=campaign)
 
 @app.route('/country_impressions')
 def show_country_impressions():
@@ -236,13 +245,11 @@ def show_creative_selection_page():
 	
 	if client == "Mozilla": #special case since there are so many different types
 		
-		mozilla_tiles = redshift.get_mozilla_tiles(cache) #get a list of mozilla tile IDs per campaign
-		
-		for tile in mozilla_tiles:
+		for tile in mozilla_tiles: #mozilla_tiles has already been pre-loaded above
 			tiles = []
 			for x in tile['ids']:
 				tiles.append([x, cache[x]['title'], cache[x]['target_url'], cache[x]['locale'], cache[x]['created_at']])
-			tile['tiles'] = sorted(tiles)
+			tile['tiles'] = sorted(tiles, key=lambda x: x[4], reverse=True) #sort by creative start date, most recent first
 		
 		meta = []
 		for x in mozilla_tiles:
