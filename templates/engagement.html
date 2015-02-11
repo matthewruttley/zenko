@@ -83,9 +83,10 @@
               <br>
               <div class="form-group">
                 <select class="form-control" id='clients' onchange="filter_engagement()">
-                  <option value="All Clients">All Clients</option>
                   {% for c in clients %}
+                  {% if c != 'Mozilla' %}
                   <option value="{{c}}"{%if client == c%} selected{%endif%}>{{c}}</option>
+                  {% endif %}
                   {% endfor %}
                 </select>
               </div>
