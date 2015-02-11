@@ -82,7 +82,7 @@
             <div class="col-md-2 col-md-offset-3 col-sm-2">
               <br>
               <div class="form-group">
-                <select class="form-control" id='clients' onchange="filter_engagement()">
+                <select class="form-control" id='clients' onchange="filter_engagement()" autofocus="true">
                   {% for c in clients %}
                   {% if c != 'Mozilla' %}
                   <option value="{{c}}"{%if client == c%} selected{%endif%}>{{c}}</option>
