@@ -189,7 +189,15 @@ function set_checkbox_label_colors() {
 	}
 }
 
-
+function filter_engagement(){
+	//functionality for client filter
+	client = document.getElementById('clients').value
+	if (client == "All Clients") {
+		location.href = "/engagement"
+	}else{
+		location.href = "/engagement?client=" + client
+	}
+}
 
 
 

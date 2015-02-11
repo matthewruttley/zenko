@@ -139,3 +139,8 @@ body {
   position: relative;
   top: -50px;
 }
+
+#header_note {
+  font-size: x-small;
+  text-decoration:none;
+}

@@ -292,6 +292,24 @@ def show_countries():
 	
 	return render_template("countries.html", clients=clients, country_impressions_data=country_impressions_data, country=country, countries=countries)
 
+@app.route("/engagement")
+def engagement_testing():
+	"""Tests out various methods of engagement"""
+
+	#get a list of clients for the side bar
+	clients = redshift.get_sponsored_client_list(cache)
+
+	#get some impressions data for a client, or Dashlane by default
+	client = request.args.get('client')
+	if not client: client = "Dashlane"
+	#this new method can pull from a cache
+	impressions_data = redshift.get_daily_impressions_data_for_engagement(cursor, client=client)
+	
+	#add engagement metrics
+	impressions_data = redshift.add_engagement_metrics(impressions_data)
+	
+	return render_template("engagement.html", clients=clients, client=client, impressions_data=impressions_data)
+
 @app.route('/')
 def show_main_page():
 	#get a list of clients for the side bar

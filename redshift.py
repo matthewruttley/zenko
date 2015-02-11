@@ -397,7 +397,117 @@ def get_client_attributes(cursor, cache, client):
 	
 	return attributes
 
+########## Engagement ###########
+
+def add_engagement_metrics(impressions_data):
+	"""Accepts some daily impressions data.
+	Tacks on a few more columns with various engagement metrics for testing"""
+	
+	#Impressions data arrives in the format:
+	#[[date, impressions, clicks, ctr%, pins, blocks, js_date]]
+	
+	#remove the js_date
+	impressions_data = [x[:-1] for x in impressions_data]
+	
+	#method 1: pin rank
+	impressions_data = sorted(impressions_data, key=lambda x: x[4], reverse=True)
+	impressions_data = [x+[n] for n, x in enumerate(impressions_data)]
+	
+	#method 2: ranked CTR
+	impressions_data = sorted(impressions_data, key=lambda x: x[3], reverse=True)
+	impressions_data = [x+[n] for n, x in enumerate(impressions_data)]
+	
+	#method 3: pins per block
+	impressions_data = [x+[round(x[4]/float(x[5]), 2)] if x[5] != 0 else x+[0] for x in impressions_data]
+	
+	#method 4: combined interaction
+	impressions_data = sorted(impressions_data, key=lambda x: x[5], reverse=True)
+	impressions_data = [x+[round(sum([x[6], x[7], n])/3.0, 2)] for n, x in enumerate(impressions_data)]
+	
+	#method 5: click fallout
+	impressions_data = [x+[""] for x in impressions_data]
+	
+	return impressions_data
+
 ########## Querying impressions data ###########
+
+def get_daily_impressions_data_for_engagement(cursor, client=False):
+	"""Gets aggregated impressions grouped by day for the engagement page, pulled from a cache"""
+	
+	#check cache
+	redownload = False
+	try:
+		if not path.isfile("engagement.cache"):
+			redownload = True #does it even exist
+		else:
+			with copen("engagement.cache", 'r', 'utf8') as f:
+				cache = load(f)          #get the timestamp and convert to datetime
+				last_updated = datetime.strptime(cache['last_updated'], "%Y-%m-%d %H:%M:%S.%f") 
+				if (datetime.now()-last_updated).days > 0:
+					redownload = True
+	except Exception: #yolo
+		redownload = True
+	
+	if not redownload:
+		if not client:
+			client = "Dashlane"
+		return cache[client]
+	else:
+		query = """
+			CREATE TEMPORARY TABLE clients (
+			  pattern VARCHAR(20)
+			);
+			
+			INSERT INTO clients VALUES
+			('%BBC%'), 
+			('%Booking.com%'), 
+			('%CITIZENFOUR%'), 
+			('%CVS Health%'), 
+			('%Dashlane%'), 
+			('%Outbrain Sphere%'), 
+			('%PagesJaunes%'), 
+			('%Trulia%'),
+			('%TurboTax%'),
+			('%WIRED%');
+			
+			SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks, title
+			FROM impression_stats_daily
+			INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
+			JOIN clients c on (tiles.title LIKE c.pattern)
+			GROUP BY date, title
+			ORDER BY date ASC
+		""".format(client.lower())
+		
+		print "Creating engagement cache..."
+		cursor.execute(query)
+		data = cursor.fetchall()
+		
+		impressions = {}
+		
+		for day in data:
+			day = list(day)
+			client = day[-1] #store client
+			day = day[:-1] #remove client
+			ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
+			js_date = "Date.UTC({0}, {1}, {2})".format(day[0].year, day[0].month, day[0].day)
+			day = ["{0}-{1}-{2}".format(day[0].year, day[0].month, day[0].day), day[1], day[2], str(ctr)+"%", day[3], day[4], js_date]
+			if client not in impressions:
+				impressions[client] = []
+			impressions[client].append(day)
+		
+		#sort
+		for client in impressions:
+			impressions[client] = sorted(impressions[client])
+		
+		impressions['last_updated'] = unicode(datetime.now())
+		with copen('engagement.cache', 'w', 'utf8') as f:
+			dump(impressions, f)
+		print "done"
+		
+		if not client:
+			client = "Dashlane"
+		return impressions[client]
+		
 
 def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all', locale=False, tile_ids=False):
 	"""Gets aggregated impressions grouped by day"""
