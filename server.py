@@ -5,6 +5,7 @@
 #and then visit http://localhost:5000
 
 from datetime import datetime
+from pdb import set_trace
 from webbrowser import open as open_webpage
 from flask import Flask, render_template, request, make_response
 import redshift
@@ -14,6 +15,7 @@ app = Flask(__name__)
 cursor = redshift.cursor()
 cache = redshift.build_tiles_cache(cursor)
 mozilla_tiles = redshift.build_mozilla_tile_list(cache)
+#import redshift;cursor=redshift.cursor();cache=redshift.build_tiles_cache(cursor);mozilla_tiles = redshift.build_mozilla_tile_list(cache)
 
 #Some custom filter stuff
 
@@ -245,21 +247,20 @@ def show_creative_selection_page():
 	
 	if client == "Mozilla": #special case since there are so many different types
 		
-		for tile in mozilla_tiles: #mozilla_tiles has already been pre-loaded above
-			tiles = []
-			for x in tile['ids']:
-				tiles.append([x, cache[x]['title'], cache[x]['target_url'], cache[x]['locale'], cache[x]['created_at']])
-			tile['tiles'] = sorted(tiles, key=lambda x: x[4], reverse=True) #sort by creative start date, most recent first
-		
 		meta = []
-		for x in mozilla_tiles:
-			meta.append(
-				{
-					"name": x['name'],
-					"tiles": len(x['tiles']),
-					"locales": len(set([y[2] for y in x['tiles']]))
-				}
-			)
+		for tile in mozilla_tiles: #mozilla_tiles has already been pre-loaded above
+			if 'client' not in tile:
+				tiles = []
+				for x in tile['ids']:
+					tiles.append([x, cache[x]['title'], cache[x]['target_url'], cache[x]['locale'], cache[x]['created_at']])
+				tile['tiles'] = sorted(tiles, key=lambda x: x[4], reverse=True) #sort by creative start date, most recent first
+				meta.append(
+					{
+						"name": tile['name'],
+						"tiles": len(tile['ids']),
+						"locales": len(set([y[2] for y in tile['tiles']]))
+					}
+				)
 		
 		return render_template("index.html", clients=clients, client=client, creative=mozilla_tiles, mozilla=True, mozilla_campaign_meta_data=meta)
 		
@@ -309,6 +310,50 @@ def engagement_testing():
 	impressions_data = redshift.add_engagement_metrics(impressions_data)
 	
 	return render_template("engagement.html", clients=clients, client=client, impressions_data=impressions_data)
+
+@app.route("/overview")
+def overview():
+	"""Shows an overview page"""
+	
+	#get a list of clients for the side bar
+	clients = redshift.get_sponsored_client_list(cache)
+
+	#get a list of all possible locales and countries
+	locales = redshift.get_all_locales(cache)
+	countries = redshift.get_all_countries(cache)
+	
+	#get the parameters
+	country = request.args.get('country')
+	locale = request.args.get('locale')
+	start_date = request.args.get('start_date')
+	end_date = request.args.get('end_date')
+	
+	#get the data
+	data = {}
+	data['impressions'] = redshift.get_overview_data(cursor, mozilla_tiles, cache, country=country, locale=locale, start_date=start_date, end_date=end_date)
+	
+	#slider parameters
+	#must remember that "bound" means the actual box limits and "values" means the pointer positions.
+	slider = { #set defaults
+		'start_value': "2014, 8, 12",
+		'end_value': "{0}, {1}, {2}".format(datetime.now().year, datetime.now().month-1, datetime.now().day),
+		'start_bound': "2014, 8, 12",
+		'end_bound': "{0}, {1}, {2}".format(datetime.now().year, datetime.now().month-1, datetime.now().day),
+	}
+	
+	if start_date: #set possible custom start date
+		slider['start_value'] = [int(x) for x in start_date.split("-")]
+		slider['start_value'][1] = slider['start_value'][1]-1
+		slider['start_value'] = str(slider['start_value'])[1:-1]
+	
+	if end_date:
+		slider['end_value'] = [int(x) for x in end_date.split("-")]
+		slider['end_value'][1] = slider['end_value'][1]-1
+		slider['end_value'] = str(slider['end_value'])[1:-1]
+	
+	data['slider'] = slider
+	
+	return render_template("mozilla_overview.html", data=data, clients=clients, country=country, locale=locale, countries=countries, locales=locales)
 
 @app.route('/')
 def show_main_page():

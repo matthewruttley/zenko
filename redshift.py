@@ -507,7 +507,6 @@ def get_daily_impressions_data_for_engagement(cursor, client=False):
 		if not client:
 			client = "Dashlane"
 		return impressions[client]
-		
 
 def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all', locale=False, tile_ids=False):
 	"""Gets aggregated impressions grouped by day"""
@@ -774,6 +773,104 @@ def get_country_impressions_data(cursor, country=False):
 	
 	return js_data
 
+def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False, start_date=False, end_date=False):
+	"""Grabs overview data"""
+	
+	#sort out the parameters
+	if country or locale or start_date or end_date:
+		where = []
+		if country:
+			where.append("country_name = '" + country + "'")
+		if locale:
+			where.append("locale = '" + locale + "'")
+		if start_date:
+			where.append("date >= '" + start_date + "'")
+		if end_date:
+			where.append("date <= '" + end_date + "'")
+		query = """
+			SELECT tile_id, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+			FROM impression_stats_daily
+			INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+			{0}
+			GROUP BY tile_id
+		""".format("WHERE " + " AND ".join(where))
+		print query
+	else:
+		query = """
+			SELECT tile_id, sum(impressions) as impressions, sum(clicks) as clicks, sum(pinned) as pins, sum(blocked) as blocks
+			FROM impression_stats_daily
+			GROUP BY tile_id
+		"""
+	
+	#grab the data from the server
+	cursor.execute(query)
+	data = cursor.fetchall()
+	
+	#enter each tile's data into a dictionary referenced by id
+	#this just makes things easier later when 
+	tile_data = {}
+	for entry in data:
+		tile_data[unicode(entry[0])] = entry[1:]
+	
+	#aggregate and add the data to the relevant tile entry
+	for t in range(len(mozilla_tiles)):
+		if 'client' not in mozilla_tiles[t]: #i.e. can't be sponsored tiles
+			totals = [0 for x in range(len(data[0])-1)] #create blank holder for totals per client
+			earliest_created_at = datetime.now() 
+			
+			for tile in mozilla_tiles[t]['ids']:
+				if tile in tile_data: #some don't yet have data
+					stats = tile_data[tile]
+					for n, x in enumerate(stats):
+						if (type(x) != unicode) and (type(x) != str):
+							totals[n] += x #aggregate
+				
+				#get the earliest created_at for each campaign
+				created_at = datetime.strptime(cache[tile]['created_at'], "%Y-%m-%d %H:%M:%S.%f")
+				if created_at < earliest_created_at:
+					earliest_created_at = created_at
+			
+			#insert the CTR
+			ctr = round((totals[1] / float(totals[0])) * 100, 5) if totals[0] != 0 else 0
+			totals.insert(2, ctr)
+			
+			#add
+			mozilla_tiles[t]['stats'] = totals
+			mozilla_tiles[t]['created_at'] = "{0}-{1}-{2}".format(earliest_created_at.year, earliest_created_at.month, earliest_created_at.day)
+
+	#now we have to add in all the paid tiles
+	clients = set([x for x in get_sponsored_client_list(cache) if x != 'Mozilla'])
+	
+	invalid = set(["-1", "999", "16903", "16910", "20000", "900000"])
+	for client in clients:
+		to_add = {
+			'name': client,
+			'stats': [0 for x in range(len(data[0])-1)],
+			'earliest_created_at': datetime.now()
+		}
+		
+		for tile, stats in tile_data.iteritems():
+			if tile not in invalid: #some legacy thing apparently
+				title = cache[tile]['title']
+				if title == client:
+					for n, x in enumerate(stats):
+						if (type(x) != unicode) and (type(x) != str):
+							to_add['stats'][n] += x #aggregate
+					created_at = datetime.strptime(cache[tile]['created_at'], "%Y-%m-%d %H:%M:%S.%f")
+					if created_at < to_add['earliest_created_at']:
+						to_add['earliest_created_at'] = created_at
+		
+		ctr = round((to_add['stats'][1] / float(to_add['stats'][0])) * 100, 5) if to_add['stats'][0] != 0 else 0
+		to_add['stats'].insert(2, ctr)
+		to_add['client'] = True
+		to_add['created_at'] = "{0}-{1}-{2}".format(to_add['earliest_created_at'].year, to_add['earliest_created_at'].month, to_add['earliest_created_at'].day)
+		
+		#now remove the existing one and replace it
+		mozilla_tiles = [x for x in mozilla_tiles if x['name'] != to_add['name']]
+		mozilla_tiles.append(to_add)
+	
+	return mozilla_tiles
+
 ######### Data transformations ###########
 
 def convert_impressions_data_for_graph(data):
@@ -808,20 +905,3 @@ def get_row_count(cursor, table_name):
 	cursor.execute("SELECT COUNT(*) FROM " + table_name + ";")
 	return cursor.fetchall()
 	
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

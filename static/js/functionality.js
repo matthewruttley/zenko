@@ -199,7 +199,28 @@ function filter_engagement(){
 	}
 }
 
-
+function filter_overview() {
+	//filters the overview page
+	locale = document.getElementById('locales').value
+	country = document.getElementById('countries').value
+	parameters = []
+	if (locale!='All Locales') {
+		parameters.push("locale="+locale)
+	}
+	if (country!='All Countries') {
+		parameters.push("country="+country)
+	}
+	var chosen_values = $("#slider").dateRangeSlider("values")
+	start_date = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")
+	end_date = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
+	parameters.push("start_date="+start_date)
+	parameters.push("end_date="+end_date)
+	
+	parameters = parameters.join("&")
+	redirect = "/overview?" + parameters
+	
+	location.href = redirect
+}
 
 
 
