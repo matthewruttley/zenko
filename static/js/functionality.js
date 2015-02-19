@@ -126,6 +126,12 @@ function convert_table_to_array() {
 	row_cells = itable.children[1].children
 	
 	for (i=0;i<row_cells.length;i++) {
+		
+		//check that the row is visible (could have been hidden)
+		if (row_cells[i].style.display == 'none') {
+			continue
+		}
+		
 		row = itable.children[1].children[i].children
 		
 		//get each cell in the row
@@ -282,10 +288,34 @@ function setSummaryBoxValues(min, max) {
 			average.innerHTML = (total/count).toFixed(4).toString().split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 		}
 	}
-
 }
 
 
+function showHideRows(min, max){
+	//Shows or hides rows based on the slider
+	
+	min = min.split(" ")[0] //get the 2015-01-01 part of the date
+	max = max.split(" ")[0]
+	
+	//now iterate through all rows
+	rows = document.getElementById("impressions_table").children[1].children
+	hide = true
+	for (r=0;r<rows.length;r++) {
+		date = rows[r].children[0].textContent
+		if (date == min) {
+			hide = false
+		}
+		if (date == max) {
+			hide = true
+		}
+		if (hide == true) {
+			rows[r].style.display = "none"
+		}else{
+			rows[r].style.display = "table-row"
+		}
+		
+	}
+}
 
 
 

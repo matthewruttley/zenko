@@ -482,6 +482,7 @@
                   events: {
                     setExtremes: function(e) {
                       setSummaryBoxValues(e.min, e.max)
+                      showHideRows(Highcharts.dateFormat(null, e.min), Highcharts.dateFormat(null, e.max))
                     }
                   }
                 },
