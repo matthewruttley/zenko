@@ -242,7 +242,48 @@ function filter_overview() {
 	location.href = redirect
 }
 
+function setSummaryBoxValues(min, max) {
+	//sets the values of the summary box
+	
+	for (var key in impressions_data) {
+		
+		//get the total 
+		total = 0
+		count = 0
+		for (i=0;i<impressions_data[key].length;i++) {
+			if (min==0) { //if all data was requested using 0,0
+				total += impressions_data[key][i][1]
+				count += 1
+			}else{
+				//specific range
+				if (impressions_data[key][i][0] >= min) {
+					if (impressions_data[key][i][0] <= max) {
+						total += impressions_data[key][i][1]
+						count += 1
+					}else{
+						break
+					}
+				}
+			}
+		}
+		
+		//locate where to place the data
+		summary = document.getElementById(key.toLowerCase() + "_summary")
+		average = document.getElementById(key.toLowerCase() + "_average")
+		
+		if (key == 'CTR') {
+			//special case
+			impressions_summary = parseInt(document.getElementById('impressions_summary').innerHTML.replace(/\,/g, ""))
+			clicks_summary = parseInt(document.getElementById("clicks_summary").innerHTML.replace(/\,/g, ""))
+			summary.innerHTML = ((clicks_summary/impressions_summary)*100).toFixed(4) +"%"
+			average.innerHTML = (total/count).toFixed(4) + "%"
+		}else{
+			summary.innerHTML = total.toString().split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+			average.innerHTML = (total/count).toFixed(4).toString().split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
+		}
+	}
 
+}
 
 
 

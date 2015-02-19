@@ -325,8 +325,46 @@
           
           {% if impressions_data %}
           <div class='row'>
-            <div class='col-md-9 col-md-offset-1 col-sm-6'>
+            <div class='col-md-9 col-sm-10'>
                 <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+            </div>
+            <div class='col-md-2 col-sm-2'>
+              <table class="table table-striped table-bordered" style='position:absolute;top:100px;'>
+                <thead>
+                  <tr>
+                    <th></th>
+                    <th>Total</th>
+                    <th>Average</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Imps</td>
+                    <td><span id='impressions_summary'></span></td>
+                    <td><span id='impressions_average'></span></td>
+                  </tr>
+                  <tr>
+                    <td>Clicks</td>
+                    <td><span id='clicks_summary'></span></td>
+                    <td><span id='clicks_average'></span></td>
+                  </tr>
+                  <tr>
+                    <td>CTR</td>
+                    <td><span id='ctr_summary'></span></td>
+                    <td><span id='ctr_average'></span></td>
+                  </tr>
+                  <tr>
+                    <td>Blocks</td>
+                    <td><span id='blocks_summary'></span></td>
+                    <td><span id='blocks_average'></span></td>
+                  </tr>
+                  <tr>
+                    <td>Pins</td>
+                    <td><span id='pins_summary'></span></td>
+                    <td><span id='pins_average'></span></td>
+                  </tr>
+                </tbody>
+              </table>
             </div>
           </div>
           <div class='row'>
@@ -440,6 +478,13 @@
                 navigator: {
                     enabled: true
                 },
+                xAxis: {
+                  events: {
+                    setExtremes: function(e) {
+                      setSummaryBoxValues(e.min, e.max)
+                    }
+                  }
+                },
                 yAxis: {
                   min: 0
                 },
@@ -517,6 +562,11 @@
         }
       );
     //-->
+    </script>
+    {% endif %}
+    {% if impressions_data %}
+    <script>
+      setSummaryBoxValues(0,0)
     </script>
     {% endif %}
   </body>
