@@ -408,7 +408,7 @@ def get_client_attributes(cursor, cache, client):
 		'countries': [],
 	}
 	
-	attributes['countries'] = get_countries_per_client(cache, client)
+	attributes['countries'] = get_countries_per_client(cache, client=client)
 	attributes['locales'] = get_locales_per_client(cache, client)
 	
 	return attributes
