@@ -276,7 +276,7 @@ function setSummaryBoxValues(min, max) {
 			impressions_summary = parseInt(document.getElementById('impressions_summary').innerHTML.replace(/\,/g, ""))
 			clicks_summary = parseInt(document.getElementById("clicks_summary").innerHTML.replace(/\,/g, ""))
 			summary.innerHTML = ((clicks_summary/impressions_summary)*100).toFixed(4) +"%"
-			average.innerHTML = (total/count).toFixed(4) + "%"
+			average.innerHTML =  "n/a" // (total/count).toFixed(4) + "%" //this doesn't mean anything
 		}else{
 			summary.innerHTML = total.toString().split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
 			average.innerHTML = (total/count).toFixed(4).toString().split(".")[0].replace(/\B(?=(\d{3})+(?!\d))/g, ",")
