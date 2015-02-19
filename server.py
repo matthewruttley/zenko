@@ -364,7 +364,7 @@ def overview():
 	
 	data['slider'] = slider
 	
-	return render_template("mozilla_overview.html", data=data, clients=clients, country=country, locale=locale, countries=countries, locales=locales)
+	return render_template("overview.html", data=data, clients=clients, country=country, locale=locale, countries=countries, locales=locales)
 
 @app.route('/')
 def show_main_page():
