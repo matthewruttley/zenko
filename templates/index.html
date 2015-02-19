@@ -53,6 +53,7 @@
         </div>
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav navbar-right">
+            <li><a href="/overview">Overview</a></li>
             <li><a href="/engagement">Engagement</a></li>
             <li><a href="/countries">Countries</a></li>
             <li><a href="javascript:alert('Zenko (善狐) means helpful/good fox in Japanese.\n\nProblems?\nEmail Matt: mruttley@mozilla.com')">Help</a></li>
@@ -120,13 +121,11 @@
           
           {% if creative %}
           {% if mozilla %}
-          <!--
           <div class='row'>
             <div class='col-md-5 col-sm-6'>
-              <button class='btn btn-primary' href='javascript:alert("coming soon")'>View all Mozilla tile data on the same graph</button>
+              <button class='btn btn-primary' href='/tile?client=Mozilla'>View all Mozilla tile data on the same graph</button>
             </div>
           </div>
-          -->
           <br>
           <div class='row'>
             <div class='col-md-10 col-sm-6'>
@@ -225,9 +224,9 @@
               <li role="presentation"><a href="/country_impressions?tile_id={{tile_id}}">Country-by-country</a></li>
               <li role="presentation" class="active"><a href="/locale_impressions?tile_id={{tile_id}}">Locale-by-locale</a></li>
               {% else %}
-              <li role="presentation"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Day-by-day</a></li>
-              <li role="presentation"><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Country-by-country</a></li>
-              <li role="presentation" class="active"><a href="/locale_impressions?client={{client}}">Locale-by-locale</a></li>
+              <li role="presentation"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Day-by-day</a></li>
+              <li role="presentation"><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Country-by-country</a></li>
+              <li role="presentation" class="active"><a href="/locale_impressions?client={{client}}{%if campaign%}&campaign={{campaign}}{%endif%}">Locale-by-locale</a></li>
               {% endif %}
             </ul>
           </div>
@@ -268,16 +267,13 @@
               <li role="presentation"><a href="/country_impressions?tile_id={{tile_id}}">Country-by-country</a></li>
               <li role="presentation"><a href="/locale_impressions?tile_id={{tile_id}}">Locale-by-locale</a></li>
               {% else %}
-              <li role="presentation" class="active"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Day-by-day</a></li>
-              {% if client != 'Mozilla' %}
-              <li role="presentation"><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Country-by-country</a></li>
-              <li role="presentation"><a href="/locale_impressions?client={{client}}">Locale-by-locale</a></li>
-              {% endif %}
+              <li role="presentation" class="active"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Day-by-day</a></li>
+              <li role="presentation"><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Country-by-country</a></li>
+              <li role="presentation"><a href="/locale_impressions?client={{client}}{%if campaign%}&campaign={{campaign}}{%endif%}">Locale-by-locale</a></li>
               {% endif %}
             </ul>
           </div>
           <div class='row'>
-            {% if client != "Mozilla" %}
             <div class="col-md-2 col-md-offset-3 col-sm-2">
               <br>
               <div class="form-group">
@@ -290,7 +286,6 @@
                 </select>
               </div>
             </div>
-            {% endif %}
             <div class="col-md-4 col-sm-4">
               <br>
               <div class="form-group">
@@ -309,9 +304,9 @@
               <li role="presentation" class="active"><a href="/country_impressions?tile_id={{tile_id}}">Country-by-country</a></li>
               <li role="presentation"><a href="/locale_impressions?tile_id={{tile_id}}">Locale-by-locale</a></li>
               {% else %}
-              <li role="presentation"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Day-by-day</a></li>
-              <li role="presentation"><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}">Country-by-country</a></li>
-              <li role="presentation"><a href="/locale_impressions?client={{client}}">Locale-by-locale</a></li>
+              <li role="presentation"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Day-by-day</a></li>
+              <li role="presentation" class='active'><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Country-by-country</a></li>
+              <li role="presentation"><a href="/locale_impressions?client={{client}}{%if campaign%}&campaign={{campaign}}{%endif%}">Locale-by-locale</a></li>
               {% endif %}
             </ul> 
             <div class="col-md-8 col-md-offset-1 col-sm-5">

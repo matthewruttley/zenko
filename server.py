@@ -53,7 +53,7 @@ def show_daily_impressions():
 	
 	#get a list of possible locales and countries
 	if client:
-		countries = redshift.get_countries_per_client(cache, client)
+		countries = redshift.get_countries_per_client(cache, mozilla_tiles=mozilla_tiles, client=client, campaign=campaign, locale=locale)
 	else:
 		countries = redshift.get_countries_per_tile(cache, tile_id)
 	
@@ -109,24 +109,24 @@ def show_country_impressions():
 	end_date = request.args.get("end_date")
 	client = request.args.get("client")
 	locale = request.args.get("locale")
+	campaign = request.args.get("campaign")
 	
 	#first get the relevant impressions data
-	if client:
-		if start_date and end_date: #this means that they want to see all the tiles for a client, compiled, and have set time constraints
-			if locale:
-				countries_impressions_data = redshift.get_countries_impressions_data(cursor, start_date=start_date, end_date=end_date, client=client, locale=locale)
-			else:
-				countries_impressions_data = redshift.get_countries_impressions_data(cursor, start_date=start_date, end_date=end_date, client=client)
-		else: #just country by country data for all a client's tiles, for all time
-			if locale:
-				countries_impressions_data = redshift.get_countries_impressions_data(cursor, client=client, locale=locale)
-			else:
-				countries_impressions_data = redshift.get_countries_impressions_data(cursor, client=client)
+	
+	if client == 'Mozilla': #special case since mozilla tiles are allowed to have particular campaigns
+		if campaign:
+			tiles = [x['ids'] for x in mozilla_tiles if x['name'] == campaign][0]
+			countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_ids=tiles, start_date=start_date, end_date=end_date, locale=locale)
+			meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles, campaign_name=campaign)
+		else:
+			#all mozilla tiles
+			tiles = []
+			for x in mozilla_tiles:
+				tiles += x['ids']
+			countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_ids=tiles, start_date=start_date, end_date=end_date, locale=locale)
+			meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles)
 	else:
-		if start_date and end_date: #tile specific data, with time boundaries
-			countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_id=tile_id, start_date=start_date, end_date=end_date) 
-		else: #tile specific data, without time boundaries (i.e. all)
-			countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_id=tile_id)
+		countries_impressions_data = redshift.get_countries_impressions_data(cursor, start_date=start_date, end_date=end_date, client=client, locale=locale, tile_id=tile_id, tile_ids=tile_ids)
 	
 	#get some meta data about the tile from the tiles database (including bounds for the slider)
 	slider = {}
@@ -169,7 +169,7 @@ def show_country_impressions():
 		}
 	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, slider=slider, specific_tile=specific_tile, locale=locale)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, slider=slider, specific_tile=specific_tile, locale=locale, campaign=campaign)
 
 @app.route('/locale_impressions')
 def show_locale_impressions():
@@ -180,20 +180,31 @@ def show_locale_impressions():
 	end_date = request.args.get('end_date')
 	country = request.args.get('country')
 	tile_id = request.args.get('tile_id')
+	campaign = request.args.get('campaign')
 
 	#get a list of clients for the side bar
 	clients = redshift.get_sponsored_client_list(cache)
 
 	#get a list of possible locales and countries
 	if client:
-		countries = redshift.get_countries_per_client(cache, client)
+		countries = redshift.get_countries_per_client(cache, mozilla_tiles=mozilla_tiles, client=client, campaign=campaign)
 	else:
 		countries = redshift.get_countries_per_tile(cache, tile_id)
 
-	impressions_data = redshift.get_locale_impressions_data(
-		cursor=cursor, client=client, start_date=start_date,
-		end_date=end_date, country=country, tile_id=tile_id
-	)
+	if client == 'Mozilla': #special case since mozilla tiles are allowed to have particular campaigns
+		if campaign:
+			tiles = [x['ids'] for x in mozilla_tiles if x['name'] == campaign][0]
+			impressions_data = redshift.get_locale_impressions_data(cursor, tile_ids=tiles, start_date=start_date, end_date=end_date, country=country)
+			meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles, campaign_name=campaign)
+		else:
+			#all mozilla tiles
+			tiles = []
+			for x in mozilla_tiles:
+				tiles += x['ids']
+			impressions_data = redshift.get_locale_impressions_data(cursor, tile_ids=tiles, start_date=start_date, end_date=end_date, country=country)
+			meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles)
+	else:
+		impressions_data = redshift.get_locale_impressions_data(cursor=cursor, client=client, start_date=start_date, end_date=end_date, country=country, tile_id=tile_id, tile_ids=tile_ids)
 	
 	#get some meta data about the tile from the tiles database (including bounds for the slider)
 	slider = {}
@@ -232,7 +243,7 @@ def show_locale_impressions():
 			'end_value': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day),
 		}
 	
-	return render_template("index.html", client=client, clients=clients, start_date=start_date, countries=countries, end_date=end_date, country=country, tile_id=tile_id, specific_tile=tile_id, locale_impressions_data=impressions_data, slider=slider)
+	return render_template("index.html", client=client, clients=clients, start_date=start_date, countries=countries, end_date=end_date, country=country, tile_id=tile_id, specific_tile=tile_id, locale_impressions_data=impressions_data, slider=slider, campaign=campaign)
 
 @app.route('/tile')
 def show_creative_selection_page():
@@ -258,7 +269,7 @@ def show_creative_selection_page():
 					{
 						"name": tile['name'],
 						"tiles": len(tile['ids']),
-						"locales": len(set([y[2] for y in tile['tiles']]))
+						"locales": len(set([y[3] for y in tile['tiles']]))
 					}
 				)
 		

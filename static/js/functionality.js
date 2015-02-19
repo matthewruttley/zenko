@@ -34,8 +34,17 @@ function filter_lbl_by_country(){
 	end_date = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
 	
 	if (location.href.indexOf('client=')!=-1) { //particular client
-		var tile_name = document.getElementById('tile_name').textContent
-		redirect = "/locale_impressions?client=" + tile_name + "&start_date=" + start_date + "&end_date=" + end_date
+		if (location.href.indexOf('client=Mozilla')!=-1) {
+			redirect = "/locale_impressions?client=Mozilla&start_date=" + start_date + "&end_date=" + end_date
+			//get possible country
+			if (location.href.indexOf('country=')!=-1) { //kind of hackish, could be cleaned up in the future
+				country = location.href.split('country=')[1].split('&')[0]
+				redirect += "&country=" + country
+			}
+		}else{
+			var tile_name = document.getElementById('tile_name').textContent
+			redirect = "/locale_impressions?client=" + tile_name + "&start_date=" + start_date + "&end_date=" + end_date
+		}
 	}else{ //particular tile
 		var tile_id = document.getElementById('tile_id').textContent
 		redirect = "/locale_impressions?tile_id=" + tile_id + "&start_date=" + start_date + "&end_date=" + end_date
@@ -51,6 +60,7 @@ function filter_lbl_by_country(){
 
 function filter_impressions_by_date(){
 	// Filters impressions using the date slider
+	// for the country-by-country analysis
 	
 	//get start and end
 	var chosen_values = $("#slider").dateRangeSlider("values")
@@ -58,13 +68,23 @@ function filter_impressions_by_date(){
 	end_date = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
 	
 	if (location.href.indexOf('client=')!=-1) { //particular client
-		var tile_name = document.getElementById('tile_name').textContent
-		if (location.href.indexOf('locale=')!=-1) { //does it include locale as well?
-			var locale = document.getElementById("locale").textContent
-			redirect = "/country_impressions?client=" + tile_name + "&start_date=" + start_date + "&end_date=" + end_date + "&locale=" + locale
+		if (location.href.indexOf('client=Mozilla')!=-1) {
+			redirect = "/country_impressions?client=Mozilla&start_date=" + start_date + "&end_date=" + end_date
+			//get possible locale
+			if (location.href.indexOf('locale=')!=-1) { //kind of hackish, could be cleaned up in the future
+				locale = location.href.split('locale=')[1].split('&')[0]
+				redirect += "&locale=" +locale
+			}
 		}else{
-			redirect = "/country_impressions?client=" + tile_name + "&start_date=" + start_date + "&end_date=" + end_date
+			var tile_name = document.getElementById('tile_name').textContent
+			if (location.href.indexOf('locale=')!=-1) { //does it include locale as well?
+				var locale = document.getElementById("locale").textContent
+				redirect = "/country_impressions?client=" + tile_name + "&start_date=" + start_date + "&end_date=" + end_date + "&locale=" + locale
+			}else{
+				redirect = "/country_impressions?client=" + tile_name + "&start_date=" + start_date + "&end_date=" + end_date
+			}
 		}
+		
 	}else{ //particular tile
 		var tile_id = document.getElementById('tile_id').textContent
 		redirect = "/country_impressions?tile_id=" + tile_id + "&start_date=" + start_date + "&end_date=" + end_date
