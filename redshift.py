@@ -602,6 +602,7 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 			ORDER BY impression_stats_daily.date ASC;
 			""".format(tile_id, country)
 	
+	print query
 	cursor.execute(query)
 	data = cursor.fetchall()
 	
@@ -733,6 +734,7 @@ def get_country_impressions_data(cursor, country=False):
 				GROUP BY date
 				ORDER BY date"""
 	
+	print query
 	cursor.execute(query)
 	data = cursor.fetchall()
 	
@@ -796,7 +798,6 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 			{0}
 			GROUP BY tile_id
 		""".format("WHERE " + " AND ".join(where))
-		print query
 	else:
 		query = """
 			SELECT tile_id, sum(impressions) as impressions, sum(clicks) as clicks, sum(pinned) as pins, sum(blocked) as blocks
@@ -805,6 +806,7 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 		"""
 	
 	#grab the data from the server
+	print query
 	cursor.execute(query)
 	data = cursor.fetchall()
 	
