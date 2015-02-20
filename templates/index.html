@@ -216,6 +216,15 @@
           {%endif%}
           {% endif %}
           
+          {% if error %}
+          <div class='row'>
+            <div class='col-md-8 col-md-offset-2 errortext'>
+              <p>{{error.message.0}}</p>
+              <p>{{error.message.1}}<a href='mailto:{{error.contact}}'>{{error.contact}}</a></p>
+            </div>
+          </div>
+          {% endif %}
+          
           {% if locale_impressions_data %}
           <div class='row'>
             <ul class="nav nav-tabs">

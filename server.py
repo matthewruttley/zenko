@@ -93,8 +93,16 @@ def show_daily_impressions():
 	#convert the data to be graph-able
 	graph = redshift.convert_impressions_data_for_graph(impressions_data)
 	
+	#insert an error message if needed
+	error = False
+	if len(impressions_data) == 0:
+		error = {
+					"message": ["The Redshift Tiles server doesn't seem to be returning any data for this analysis.", "Sound odd? Please contact "],
+					"contact": "mruttley@mozilla.com"
+		}
+	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile, impressions_data_graph=graph, campaign=campaign)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile, impressions_data_graph=graph, campaign=campaign, error=error)
 
 @app.route('/country_impressions')
 def show_country_impressions():
