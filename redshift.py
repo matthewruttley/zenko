@@ -621,22 +621,22 @@ def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_
 	#construct WHERE clause using parameters
 	where = []
 	if start_date:
-		where.append("DATE >= '{0}'".format(start_date))
+		where.append(u"DATE >= '{0}'".format(start_date))
 	if end_date:
-		where.append("DATE <= '{0}'".format(end_date))
+		where.append(u"DATE <= '{0}'".format(end_date))
 	if tile_id:
-		where.append("tile_id = " + tile_id)
+		where.append(u"tile_id = " + tile_id)
 	if client:
 		if client != 'Mozilla':
-			where.append("LOWER (title) LIKE '%{0}%'".format(client.lower()))
+			where.append(u"LOWER (title) LIKE '%{0}%'".format(client.lower()))
 	if locale:
-		where.append("locale = '{0}'".format(locale))
+		where.append(u"locale = '{0}'".format(locale))
 	if tile_ids:
 		if len(tile_ids) == 1:
-			where.append("tile_id = {0}".format(list(tile_ids)[0]))
+			where.append(u"tile_id = {0}".format(list(tile_ids)[0]))
 		else:
 			tile_ids = ", ".join(tile_ids)
-			where.append("tile_id in ({0})".format(tile_ids))
+			where.append(u"tile_id in ({0})".format(tile_ids))
 	
 	#put into single line
 	if len(where) == 1:
@@ -672,22 +672,22 @@ def get_locale_impressions_data(cursor, client=False, start_date=False, end_date
 	#construct WHERE clause using parameters
 	where = []
 	if start_date:
-		where.append("DATE >= '{0}'".format(start_date))
+		where.append(u"DATE >= '{0}'".format(start_date))
 	if end_date:
-		where.append("DATE <= '{0}'".format(end_date))
+		where.append(u"DATE <= '{0}'".format(end_date))
 	if tile_id:
-		where.append("tile_id = " + tile_id)
+		where.append(u"tile_id = " + tile_id)
 	if client:
 		if client != 'Mozilla':
-			where.append("LOWER (title) LIKE '%{0}%'".format(client.lower()))
+			where.append(u"LOWER (title) LIKE '%{0}%'".format(client.lower()))
 	if country:
-		where.append("country_name = '{0}'".format(country))
+		where.append(u"country_name = '{0}'".format(country))
 	if tile_ids:
 		if len(tile_ids) == 1:
-			where.append("tile_id = {0}".format(list(tile_ids)[0]))
+			where.append(u"tile_id = {0}".format(list(tile_ids)[0]))
 		else:
 			tile_ids = ", ".join(tile_ids)
-			where.append("tile_id in ({0})".format(tile_ids))
+			where.append(u"tile_id in ({0})".format(tile_ids))
 	
 	#put into single line
 	if len(where) == 1:
@@ -784,13 +784,13 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 	if country or locale or start_date or end_date:
 		where = []
 		if country:
-			where.append("country_name = '" + country + "'")
+			where.append(u"country_name = '" + country + "'")
 		if locale:
-			where.append("locale = '" + locale + "'")
+			where.append(u"locale = '" + locale + "'")
 		if start_date:
-			where.append("date >= '" + start_date + "'")
+			where.append(u"date >= '" + start_date + "'")
 		if end_date:
-			where.append("date <= '" + end_date + "'")
+			where.append(u"date <= '" + end_date + "'")
 		query = u"""
 			SELECT tile_id, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 			FROM impression_stats_daily
