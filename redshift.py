@@ -469,7 +469,7 @@ def get_daily_impressions_data_for_engagement(cursor, client=False):
 			client = "Dashlane"
 		return cache[client]
 	else:
-		query = """
+		query = u"""
 			CREATE TEMPORARY TABLE clients (
 			  pattern VARCHAR(20)
 			);
@@ -534,7 +534,7 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 		else:
 			where = ", ".join(tile_ids)
 			where = "in ({0})".format(where)
-		query = """
+		query = u"""
 			SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 			FROM impression_stats_daily
 			WHERE tile_id {0}
@@ -544,7 +544,7 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 	elif client: #get all tiles
 		if country == "all": #all countries
 			if locale:
-				query = """
+				query = u"""
 				SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 				FROM impression_stats_daily
 				INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
@@ -553,7 +553,7 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 				ORDER BY date ASC
 				""".format(client.lower(), locale)
 			else:
-				query = """
+				query = u"""
 				SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 				FROM impression_stats_daily
 				INNER JOIN tiles ON tiles.id = impression_stats_daily.tile_id
@@ -563,7 +563,7 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 				""".format(client.lower())
 		else: #specific country
 			if locale:
-				query = """
+				query = u"""
 				SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 				FROM impression_stats_daily
 				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
@@ -573,7 +573,7 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 				ORDER BY date ASC
 				""".format(client.lower(), country, locale)
 			else:
-				query = """
+				query = u"""
 				SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 				FROM impression_stats_daily
 				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
@@ -584,7 +584,7 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 				""".format(client.lower(), country)
 	else: #specific tile
 		if country == "all": #all countries
-			query = """
+			query = u"""
 			SELECT date, SUM(impressions) as impressions, SUM(clicks) as clicks, SUM(pinned) as pinned, SUM(blocked) as blocked
 			FROM impression_stats_daily
 			WHERE tile_id = {0}
@@ -592,7 +592,7 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 			ORDER BY date ASC;
 			""".format(tile_id)
 		else: #specific country
-			query = """
+			query = u"""
 			SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pinned, SUM (blocked) AS blocked
 			FROM impression_stats_daily
 			INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
@@ -644,7 +644,7 @@ def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_
 	else:
 		where = "WHERE " + ' AND '.join(where)
 	
-	query = """
+	query = u"""
 			SELECT countries.country_name, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 			FROM impression_stats_daily
 			INNER JOIN tiles on tiles.id = impression_stats_daily.tile_id
@@ -695,7 +695,7 @@ def get_locale_impressions_data(cursor, client=False, start_date=False, end_date
 	else:
 		where = "WHERE " + ' AND '.join(where)
 	
-	query = """
+	query = u"""
 			SELECT impression_stats_daily.locale, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 			FROM impression_stats_daily
 			INNER JOIN tiles on tiles.id = impression_stats_daily.tile_id
@@ -722,14 +722,14 @@ def get_country_impressions_data(cursor, country=False):
 	"""Gets country impressions data for the 'countries' page. Not to be confused with the country-by-country analysis"""
 	
 	if country:
-		query = """SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+		query = u"""SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 				FROM impression_stats_daily
 				INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
 				WHERE country_name = '{0}'
 				GROUP BY date
 				ORDER BY date""".format(country)
 	else:
-		query = """SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+		query = u"""SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 				FROM impression_stats_daily
 				GROUP BY date
 				ORDER BY date"""
@@ -791,7 +791,7 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 			where.append("date >= '" + start_date + "'")
 		if end_date:
 			where.append("date <= '" + end_date + "'")
-		query = """
+		query = u"""
 			SELECT tile_id, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
 			FROM impression_stats_daily
 			INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
@@ -799,7 +799,7 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 			GROUP BY tile_id
 		""".format("WHERE " + " AND ".join(where))
 	else:
-		query = """
+		query = u"""
 			SELECT tile_id, sum(impressions) as impressions, sum(clicks) as clicks, sum(pinned) as pins, sum(blocked) as blocks
 			FROM impression_stats_daily
 			GROUP BY tile_id
