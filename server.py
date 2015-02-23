@@ -113,6 +113,7 @@ def show_country_impressions():
 	
 	#get the GET variables
 	tile_id = request.args.get("tile_id")
+	tile_ids = request.args.get("tile_ids")
 	start_date = request.args.get("start_date")
 	end_date = request.args.get("end_date")
 	client = request.args.get("client")
@@ -188,6 +189,7 @@ def show_locale_impressions():
 	end_date = request.args.get('end_date')
 	country = request.args.get('country')
 	tile_id = request.args.get('tile_id')
+	tile_ids = request.args.get('tile_ids')
 	campaign = request.args.get('campaign')
 
 	#get a list of clients for the side bar
