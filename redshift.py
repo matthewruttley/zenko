@@ -484,6 +484,7 @@ def get_daily_impressions_data_for_engagement(cursor, client=False):
 			('%PagesJaunes%'), 
 			('%Trulia%'),
 			('%TurboTax%'),
+			('%ImpôtRapide%'),
 			('%WIRED%');
 			
 			SELECT date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks, title
