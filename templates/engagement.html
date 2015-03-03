@@ -117,23 +117,23 @@
                       <th>M2</th>
                       <th>M3</th>
                       <th>M4</th>
-                      <th>M5</th>
+                      <th>M7</th>
                     </tr>
                   </thead>
                   <tbody>
                     {% for day in impressions_data %}
                     <tr>
                       <td data-dateformat="YYYY-MM-DD">{{day.0}}</td>
-                      <td>{{day.1|thousands}}</td>
-                      <td>{{day.2|thousands}}</td>
-                      <td>{{day.3}}</td>
-                      <td>{{day.4|thousands}}</td>
-                      <td>{{day.5|thousands}}</td>
-                      <td>{{day.6}}</td>
-                      <td>{{day.7}}</td>
-                      <td>{{day.8}}</td>
-                      <td>{{day.9}}</td>
-                      <td>{{day.10}}</td>
+                      <td data-value="{{day.1}}">{{day.1|thousands}}</td>
+                      <td data-value="{{day.2}}">{{day.2|thousands}}</td>
+                      <td data-value="{{day.3}}">{{day.3}}</td>
+                      <td data-value="{{day.4}}">{{day.4|thousands}}</td>
+                      <td data-value="{{day.5}}">{{day.5|thousands}}</td>
+                      <td data-value="{{day.6}}">{{day.6}}</td>
+                      <td data-value="{{day.7}}">{{day.7}}</td>
+                      <td data-value="{{day.8}}">{{day.8}}</td>
+                      <td data-value="{{day.9}}">{{day.9}}</td>
+                      <td data-value="{{day.10}}">{{day.10}}</td>
                     </tr>
                     {% endfor %}
                   </tbody>

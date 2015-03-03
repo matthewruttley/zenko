@@ -415,6 +415,19 @@ def get_client_attributes(cursor, cache, client):
 
 ########## Engagement ###########
 
+def engagement(blocks, clicks):
+	"""Adds m7 engagement"""
+
+	if clicks == 0:
+		return 0
+	
+	e = float(blocks) / clicks
+	e = e * 10
+	e = 1000 - e
+	e = int(e)
+	
+	return e
+
 def add_engagement_metrics(impressions_data):
 	"""Accepts some daily impressions data.
 	Tacks on a few more columns with various engagement metrics for testing"""
@@ -440,8 +453,8 @@ def add_engagement_metrics(impressions_data):
 	impressions_data = sorted(impressions_data, key=lambda x: x[5], reverse=True)
 	impressions_data = [x+[round(sum([x[6], x[7], n])/3.0, 2)] for n, x in enumerate(impressions_data)]
 	
-	#method 5: click fallout
-	impressions_data = [x+[""] for x in impressions_data]
+	#method 7: baselined block/click ratio
+	impressions_data=  [x+[engagement(x[5], x[2])] for x in impressions_data]
 	
 	return impressions_data
 
@@ -839,6 +852,9 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 			ctr = round((totals[1] / float(totals[0])) * 100, 5) if totals[0] != 0 else 0
 			totals.insert(2, ctr)
 			
+			#append the engagement
+			totals.append(engagement(totals[4], totals[1]))
+			
 			#add
 			mozilla_tiles[t]['stats'] = totals
 			mozilla_tiles[t]['created_at'] = "{0}-{1}-{2}".format(earliest_created_at.year, earliest_created_at.month, earliest_created_at.day)
@@ -867,6 +883,11 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 		
 		ctr = round((to_add['stats'][1] / float(to_add['stats'][0])) * 100, 5) if to_add['stats'][0] != 0 else 0
 		to_add['stats'].insert(2, ctr)
+		
+		#append the engagement
+		to_add['stats'].append(engagement(to_add['stats'][4], to_add['stats'][1]))
+		
+		
 		to_add['client'] = True
 		to_add['created_at'] = "{0}-{1}-{2}".format(to_add['earliest_created_at'].year, to_add['earliest_created_at'].month, to_add['earliest_created_at'].day)
 		
