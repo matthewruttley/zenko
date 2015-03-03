@@ -415,6 +415,28 @@ def get_client_attributes(cursor, cache, client):
 
 ########## Engagement ###########
 
+def engagement_grade(engagement):
+	"""Scores the engagement with a letter"""
+	
+	over = [
+		[997, "A++"],
+		[992, "A+"],
+		[979, "A"],
+		[971, "B++"],
+		[960, "B+"],
+		[951, "B"],
+		[933, "C++"],
+		[898, "C+"],
+		[0, "C"]
+	]
+	
+	for score in over:
+		if engagement >= score[0]:
+			return score[1]
+	
+	return "?"
+	
+
 def engagement(blocks, clicks):
 	"""Adds m7 engagement"""
 
@@ -752,12 +774,13 @@ def get_country_impressions_data(cursor, country=False):
 	cursor.execute(query)
 	data = cursor.fetchall()
 	
-	#insert the CTR
+	#insert the CTR and Engagement
 	impressions = []
 	for day in data:
 		day = list(day)
 		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
-		impressions.append([day[0], day[1], day[2], str(ctr), day[3], day[4]])
+		eng = engagement(day[4], day[2])
+		impressions.append([day[0], day[1], day[2], str(ctr), day[3], day[4], eng])
 	
 	#convert to a JSON ish format for highcharts
 	#or at least something that can be easily understood by jinja
@@ -781,11 +804,12 @@ def get_country_impressions_data(cursor, country=False):
 	#]
 	# and then simply iterate through that in jinja
 	
-	column_names = [x[0] for x in cursor.description]
+	#column_names = [x[0] for x in cursor.description]
+	column_names = ["impressions", "clicks", 'CTR', 'pins', 'blocks', 'engagement']
 	list_of_dates = ["Date.UTC({0}, {1}, {2})".format(x[0].year, x[0].month-1, x[0].day) for x in data]
 	js_data = [[x, []] for x in column_names if x != 'date']
 	
-	for row_index, row in enumerate(data):
+	for row_index, row in enumerate(impressions):
 		for n, cell in enumerate(row[1:]): #ignore date
 			js_data[n][1].append([list_of_dates[row_index], cell])
 	
@@ -855,6 +879,9 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 			#append the engagement
 			totals.append(engagement(totals[4], totals[1]))
 			
+			#append the engagement grade
+			totals.append(engagement_grade(totals[-1]))
+			
 			#add
 			mozilla_tiles[t]['stats'] = totals
 			mozilla_tiles[t]['created_at'] = "{0}-{1}-{2}".format(earliest_created_at.year, earliest_created_at.month, earliest_created_at.day)
@@ -887,6 +914,8 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 		#append the engagement
 		to_add['stats'].append(engagement(to_add['stats'][4], to_add['stats'][1]))
 		
+		#append engagement grade
+		to_add['stats'].append(engagement_grade(to_add['stats'][-1]))
 		
 		to_add['client'] = True
 		to_add['created_at'] = "{0}-{1}-{2}".format(to_add['earliest_created_at'].year, to_add['earliest_created_at'].month, to_add['earliest_created_at'].day)
