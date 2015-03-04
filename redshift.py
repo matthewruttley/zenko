@@ -435,7 +435,6 @@ def engagement_grade(engagement):
 			return score[1]
 	
 	return "?"
-	
 
 def engagement(blocks, clicks):
 	"""Adds m7 engagement"""
@@ -444,6 +443,7 @@ def engagement(blocks, clicks):
 		return 0
 	
 	e = float(blocks) / clicks
+	#e = e * (blocks * clicks)
 	e = e * 10
 	e = 1000 - e
 	e = int(e)
@@ -648,7 +648,9 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 		day = list(day)
 		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
 		js_date = "Date.UTC({0}, {1}, {2})".format(day[0].year, day[0].month, day[0].day)
-		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], js_date])
+		eng = engagement(day[4], day[2])
+		egrade = engagement_grade(eng)
+		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade, js_date])
 	return impressions
 
 def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_date=False, client=False, locale=False, tile_ids=False):
@@ -699,7 +701,9 @@ def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_
 	for day in data:
 		day = list(day)
 		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
-		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]]) #why doesn't insert() work
+		eng = engagement(day[4], day[2])
+		egrade = engagement_grade(eng)
+		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade]) #why doesn't insert() work
 	return impressions
 
 def get_locale_impressions_data(cursor, client=False, start_date=False, end_date=False, country=False, tile_id=False, tile_ids=False):
@@ -750,7 +754,9 @@ def get_locale_impressions_data(cursor, client=False, start_date=False, end_date
 	for day in data:
 		day = list(day)
 		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
-		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4]])
+		eng = engagement(day[4], day[2])
+		egrade = engagement_grade(eng)
+		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade])
 	
 	return impressions
 
@@ -930,15 +936,17 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 
 def convert_impressions_data_for_graph(data):
 	"""Converts the output of get_daily_impressions_data to a format useful in Highcharts"""
-	#data arrives as a list of lists, each sublist having 6 elements
+	#data arrives as a list of lists, each sublist having 8 elements
 	
 	#way too much code repetition here
-	column_names = ['Date', "Impressions", "Clicks", "CTR", "Pins", "Blocks"]
+	column_names = ['Date', "Impressions", "Clicks", "CTR", "Pins", "Blocks", "Engagement", "Grade"]
+	
 	list_of_dates = ["Date.UTC({0}, {1}, {2})".format(x[0].year, x[0].month-1, x[0].day) for x in data]
-	js_data = [[x, []] for x in column_names if x != 'Date']
+	
+	js_data = [[x, []] for x in column_names if x not in ['Date', 'Grade']]
 	
 	for row_index, row in enumerate(data):
-		for n, cell in enumerate(row[1:-1]): #ignore date
+		for n, cell in enumerate(row[1:-2]): #ignore date
 			if (type(cell) == str) and cell.endswith("%"):
 				cell = cell[:-1]
 			js_data[n][1].append([list_of_dates[row_index], cell])
