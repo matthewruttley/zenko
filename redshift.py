@@ -415,6 +415,58 @@ def get_client_attributes(cursor, cache, client):
 
 ########## Engagement ###########
 
+def get_temporal_engagement(cursor, time_delimiter):
+	"""Daily overall engagement"""
+	
+	query = """
+	SELECT date, SUM(impressions) as impressions, SUM(blocked) as blocks, SUM(clicks) as clicks
+	FROM impression_stats_daily
+	GROUP BY date
+	ORDER BY date ASC
+	"""
+	cursor.execute(query)
+	
+	data = defaultdict(lambda: [0,0,0,0]) #impressions, blocks, clicks, engagement
+	
+	if time_delimiter == "monthly":
+		col_name = "Month"
+		for row in cursor.fetchall():
+			formatted_date = "{0}-{1}".format(row[0].year, row[0].month)
+			data[formatted_date][0] += row[1]
+			data[formatted_date][1] += row[2]
+			data[formatted_date][2] += row[3]
+	elif time_delimiter == "weekly":
+		col_name = "Week"
+		for row in cursor.fetchall():
+			formatted_date = "{0}-{1}".format(row[0].year, row[0].isocalendar()[1])
+			if formatted_date != "2014-1": #strange bug
+				data[formatted_date][0] += row[1]
+				data[formatted_date][1] += row[2]
+				data[formatted_date][2] += row[3]
+	else:
+		#daily
+		col_name = "Day"
+		for row in cursor.fetchall():
+			formatted_date = row[0].strftime("%Y-%m-%d")
+			data[formatted_date][0] += row[1]
+			data[formatted_date][1] += row[2]
+			data[formatted_date][2] += row[3]
+	
+	data = sorted(data.items()) #sort by date ascending
+	formatted = [[col_name, "Impressions", "Blocks", "Clicks", "Engagement"]]
+	
+	#now add in engagement and format nicely with [date, x, y, z...]
+	for date in data:
+		formatted.append([
+				date[0],
+				date[1][0],
+				date[1][1],
+				date[1][2],
+				engagement(date[1][1], date[1][2])
+			])
+	
+	return formatted
+
 def engagement_grade(engagement):
 	"""Scores the engagement with a letter"""
 	

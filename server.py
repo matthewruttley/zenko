@@ -321,16 +321,26 @@ def engagement_testing():
 	#get a list of clients for the side bar
 	clients = redshift.get_sponsored_client_list(cache)
 
-	#get some impressions data for a client, or Dashlane by default
-	client = request.args.get('client')
-	if not client: client = "Dashlane"
-	#this new method can pull from a cache
-	impressions_data = redshift.get_daily_impressions_data_for_engagement(cursor, client=client)
+	time_unit = request.args.get('time_unit')
+	if time_unit:
+		impressions_data = redshift.get_temporal_engagement(cursor, time_unit)
+		column_headers = impressions_data[0]
+		impressions_data = impressions_data[1:]
+		client = "Overall"
+	else:	
+		#get some impressions data for a client, or Dashlane by default
+		client = request.args.get('client')
+		if not client: client = "Dashlane"
+		
+		column_headers = None
+		
+		#this new method can pull from a cache
+		impressions_data = redshift.get_daily_impressions_data_for_engagement(cursor, client=client)
+		
+		#add engagement metrics
+		impressions_data = redshift.add_engagement_metrics(impressions_data)
 	
-	#add engagement metrics
-	impressions_data = redshift.add_engagement_metrics(impressions_data)
-	
-	return render_template("engagement.html", clients=clients, client=client, impressions_data=impressions_data)
+	return render_template("engagement.html", clients=clients, client=client, impressions_data=impressions_data, column_headers=column_headers, time_unit=time_unit)
 
 @app.route("/overview")
 def overview():
