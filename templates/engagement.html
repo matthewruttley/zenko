@@ -117,8 +117,12 @@
           
           {% if column_headers %}
           <div class='row'>
-            <div class='col-md-9 col-sm-10'>
+            <div class='col-md-10 col-sm-10'>
                 <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+            </div>
+            <div class='col-md-2 col-sm-2'>
+              <br>
+              <button class='btn' id='baseline' onclick='baseline_chart()'>Baseline chart<br>at 700</button>
             </div>
           </div> 
           {% endif %}
@@ -206,27 +210,19 @@
         
         $(function() {
             $('#container').highcharts('StockChart', {
-                chart: {
-                    events: {
-                        addSeries: function(){
-                            set_checkbox_label_colors()
-                        }
-                    }    
-                },
                 scrollbar: {
                     enabled: true
                 },
                 navigator: {
                     enabled: true
                 },
-                xAxis: {
-                  events: {
-                    setExtremes: function(e) {
-                      setSummaryBoxValues(e.min, e.max)
-                      showHideRows(Highcharts.dateFormat(null, e.min), Highcharts.dateFormat(null, e.max))
-                    }
-                  }
-                },
+                //xAxis: {
+                //  events: {
+                //    setExtremes: function(e) {
+                //      showHideRows(Highcharts.dateFormat(null, e.min), Highcharts.dateFormat(null, e.max))
+                //    }
+                //  }
+                //},
                 yAxis: {
                   min: 0
                 },
@@ -236,39 +232,6 @@
                     data: impressions_data['Engagement']
                 }
                 ]
-            }, function(){
-                //when the chart loads, set the colors of the checkbox labels
-                //to the same as that of the lines
-                set_checkbox_label_colors()
-            });
-        
-            $('.choice').click(function() {
-
-                var chart = $('#container').highcharts();
-                var buttons = document.getElementsByClassName("choice")
-                
-                for (x=0;x<buttons.length;x++) {
-                    
-                    var isChecked = buttons[x].checked
-                    var choice = buttons[x].value;
-                    var exists = seriesExists(choice)
-                    
-                    if(isChecked && !exists){
-                        var series = chart.addSeries({
-                            name: choice,
-                            data: impressions_data[choice]
-                        });
-                        set_checkbox_label_colors();
-                    }
-                    if(!isChecked && exists){
-                        for (i=0;i<chart.series.length;i++) {
-                            if (chart.series[i].name == choice) {
-                                chart.series[i].remove()
-                            }
-                        }
-                        set_checkbox_label_colors();
-                    }
-                }
             });
         });
         

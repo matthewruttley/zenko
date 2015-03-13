@@ -302,10 +302,10 @@ function showHideRows(min, max){
 	hide = true
 	for (r=0;r<rows.length;r++) {
 		date = rows[r].children[0].textContent
-		if (date == min) {
+		if (date <= min) {
 			hide = false
 		}
-		if (date == max) {
+		if (date >= max) {
 			hide = true
 		}
 		if (hide == true) {
@@ -317,7 +317,18 @@ function showHideRows(min, max){
 	}
 }
 
-
+function baseline_chart(){
+	//sets the yaxis extremes
+	ya = $("#container").highcharts().series[0].yAxis
+	button = document.getElementById('baseline')
+	if (ya.min == 700) {
+		ya.setExtremes(0, 1000)
+		button.innerHTML = "Baseline chart<br>at 700"
+	}else{
+		ya.setExtremes(700, 1000)
+		button.innerHTML = "Baseline chart<br>at 0"
+	}
+}
 
 
 
