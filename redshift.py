@@ -462,15 +462,21 @@ def get_temporal_engagement(cursor, time_delimiter):
 	if time_delimiter == "monthly":
 		col_name = "Month"
 		for row in cursor.fetchall():
-			formatted_date = "{0}-{1}".format(row[0].year, row[0].month)
+			month = str(row[0].month)
+			if len(month) == 1:
+				month = "0"+str(month)
+			formatted_date = "{0}-{1}".format(row[0].year, month)
 			data[formatted_date][0] += row[1]
 			data[formatted_date][1] += row[2]
 			data[formatted_date][2] += row[3]
 	elif time_delimiter == "weekly":
 		col_name = "Week"
 		for row in cursor.fetchall():
-			formatted_date = "{0}-{1}".format(row[0].year, row[0].isocalendar()[1])
-			if formatted_date != "2014-1": #strange bug
+			week = str(row[0].isocalendar()[1])
+			if len(week) == 1:
+				week = "0"+week
+			formatted_date = "{0}-{1}".format(row[0].year, week)
+			if formatted_date != "2014-01": #strange bug
 				data[formatted_date][0] += row[1]
 				data[formatted_date][1] += row[2]
 				data[formatted_date][2] += row[3]
