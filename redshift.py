@@ -18,6 +18,7 @@ from itertools import chain
 
 import psycopg2
 from login import login_string #login details, not committed
+from isoweek import Week
 
 ############# Basic caching and setup ##################
 
@@ -415,6 +416,35 @@ def get_client_attributes(cursor, cache, client):
 
 ########## Engagement ###########
 
+def create_engagement_graph_data(impressions_data, time_unit):
+	"""Converts the output of get_temporal_engagement to a format useful in Highcharts"""
+	
+	#recieves: [[day, ..., eng], ...]
+	#outputs: [[js_day, eng], ...]
+	
+	#data is weirdly unsorted, so we have to convert everything to a
+	#date object, then to the js string format
+	
+	graph_data = []
+	for entry in impressions_data:
+		date = entry[0].split("-")
+		if time_unit == 'monthly':
+			date = datetime(int(date[0]), int(date[1]), 1)
+		elif time_unit == 'weekly':
+			#have to work out start date (?) of week from the week number
+			d = Week(int(date[0]), int(date[1])).monday()
+			date = datetime(int(date[0]), d.month, d.day)
+		else: #daily
+			date = datetime(int(date[0]), int(date[1]), int(date[2]))
+		
+		engagement = entry[-1]
+		graph_data.append([date, engagement])
+
+	graph_data = sorted(graph_data)
+	graph_data = [["Date.UTC({0}, {1}, {2})".format(x[0].year, x[0].month-1, x[0].day), x[1]] for x in graph_data]
+	
+	return graph_data
+
 def get_temporal_engagement(cursor, time_delimiter):
 	"""Daily overall engagement"""
 	
@@ -424,6 +454,7 @@ def get_temporal_engagement(cursor, time_delimiter):
 	GROUP BY date
 	ORDER BY date ASC
 	"""
+	print query
 	cursor.execute(query)
 	
 	data = defaultdict(lambda: [0,0,0,0]) #impressions, blocks, clicks, engagement

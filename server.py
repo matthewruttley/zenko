@@ -322,10 +322,12 @@ def engagement_testing():
 	clients = redshift.get_sponsored_client_list(cache)
 
 	time_unit = request.args.get('time_unit')
+	impressions_data_graph = None
 	if time_unit:
 		impressions_data = redshift.get_temporal_engagement(cursor, time_unit)
 		column_headers = impressions_data[0]
 		impressions_data = impressions_data[1:]
+		impressions_data_graph = redshift.create_engagement_graph_data(impressions_data, time_unit)
 		client = "Overall"
 	else:	
 		#get some impressions data for a client, or Dashlane by default
@@ -340,7 +342,7 @@ def engagement_testing():
 		#add engagement metrics
 		impressions_data = redshift.add_engagement_metrics(impressions_data)
 	
-	return render_template("engagement.html", clients=clients, client=client, impressions_data=impressions_data, column_headers=column_headers, time_unit=time_unit)
+	return render_template("engagement.html", clients=clients, client=client, impressions_data=impressions_data, column_headers=column_headers, time_unit=time_unit, impressions_data_graph=impressions_data_graph)
 
 @app.route("/overview")
 def overview():
