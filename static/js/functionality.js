@@ -253,6 +253,10 @@ function setSummaryBoxValues(min, max) {
 	
 	for (var key in impressions_data) {
 		
+		if ((key=='Engagement') || (key=='EGrade')) {
+			continue
+		}
+		
 		//get the total 
 		total = 0
 		count = 0
@@ -294,26 +298,24 @@ function setSummaryBoxValues(min, max) {
 function showHideRows(min, max){
 	//Shows or hides rows based on the slider
 	
-	min = min.split(" ")[0] //get the 2015-01-01 part of the date
-	max = max.split(" ")[0]
+	min = min.split(" ")[0].split("-") //get the 2015-01-01 part of the date
+	min = new Date(min[0], min[1], min[2])
+	max = max.split(" ")[0].split("-")
+	max = new Date(max[0], max[1], max[2])
 	
 	//now iterate through all rows
 	rows = document.getElementById("impressions_table").children[1].children
 	hide = true
 	for (r=0;r<rows.length;r++) {
-		date = rows[r].children[0].textContent
-		if (date <= min) {
-			hide = false
-		}
-		if (date >= max) {
-			hide = true
-		}
-		if (hide == true) {
-			rows[r].style.display = "none"
-		}else{
-			rows[r].style.display = "table-row"
-		}
 		
+		date = rows[r].children[0].textContent.split("-")
+		date = new Date(date[0], date[1], date[2])
+		
+		if ((date > min) && (date < max)) {
+			rows[r].style.display = "table-row" //show
+		}else{
+			rows[r].style.display = "none" //hide
+		}
 	}
 }
 
@@ -329,23 +331,3 @@ function baseline_chart(){
 		button.innerHTML = "Baseline chart<br>at 0"
 	}
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
