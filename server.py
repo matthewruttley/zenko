@@ -388,6 +388,17 @@ def overview():
 	
 	return render_template("overview.html", data=data, clients=clients, country=country, locale=locale, countries=countries, locales=locales)
 
+@app.route("/projection")
+def projection():
+	"""Shows the inventory projection dashboard"""
+	
+	#get a list of clients for the side bar
+	clients = redshift.get_sponsored_client_list(cache)
+
+	data = {}
+
+	return render_template("inventory_projection.html", data=data, clients=clients)
+
 @app.route('/')
 def show_main_page():
 	#get a list of clients for the side bar
