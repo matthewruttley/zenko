@@ -274,10 +274,25 @@ def get_sponsored_client_list(cache):
 	return sorted(list(clients))
 
 def get_tile_meta_data(cache, tile_id):
-	"""Gets the entry for a specific tile in the tiles database and returns it as a list of lists"""
-	metadata_table = sorted([list(x) for x in cache[tile_id].items()])
-	metadata_table[1][1] = len(metadata_table[1][1]) #collapse countries
-	metadata_table.insert(0, ["id", tile_id]) #insert id
+	"""Gets the entry for a specific tile/tiles in the tiles database and returns it as a list of lists"""
+	
+	if "," in tile_id:
+		tile_id = tile_id.split(",")
+		#get the fields for the first tile
+		
+		metadata_table = defaultdict(set)
+		for x in tile_id:
+			for field, value in cache[x].iteritems():
+				if type(value) != list:
+					value = [value]
+				metadata_table[field].update(value)
+			metadata_table['ids'].update([x])
+		
+		metadata_table = [[x[0], ", ".join([unicode(z) for z in list(x[1])])] if x[0] != 'countries' else [x[0], len(x[1])] for x in metadata_table.items()]		
+	else:
+		metadata_table = sorted([list(x) for x in cache[tile_id].items()])
+		metadata_table[1][1] = len(metadata_table[1][1]) #collapse countries
+		metadata_table.insert(0, ["id", tile_id]) #insert id
 	return metadata_table
 
 def get_mozilla_meta_data(cache, mozilla_tiles, campaign_name=False, locale=False):
@@ -389,7 +404,14 @@ def get_countries_per_client(cache, mozilla_tiles=False, client=False, locale=Fa
 
 def get_countries_per_tile(cache, tile_id):
 	"""Given a tile id it returns the country list"""
-	return cache[tile_id]['countries']
+	if "," in tile_id:
+		tile_id = tile_id.split(",")
+		countries = set()
+		for x in tile_id:
+			countries.update(cache[x]['countries'])
+		return list(countries)
+	else:
+		return cache[tile_id]['countries']
 
 def get_all_countries(cache):
 	"""Just gets all possible countries"""
@@ -654,6 +676,8 @@ def get_daily_impressions_data(cursor, tile_id=False, client=False, country='all
 	
 	if tile_ids:
 		#Compile together results from several tile ids, usually in the same campaign
+		if type(tile_ids) in [str, unicode]:
+			tile_ids = tile_ids.split(",")
 		if len(tile_ids) == 1:
 			where = "= {0}".format(list(tile_ids)[0])
 		else:
@@ -984,7 +1008,7 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 	#now we have to add in all the paid tiles
 	clients = set([x for x in get_sponsored_client_list(cache) if x != 'Mozilla'])
 	
-	invalid = set(["-1", "999", "16903", "16910", "20000", "900000"])
+	invalid = set(["-1", "999", "16903", "16910", "20000", "900000", "5000", "-691"])
 	for client in clients:
 		to_add = {
 			'name': client,

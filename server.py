@@ -43,6 +43,7 @@ def show_daily_impressions():
 	"""Shows daily impressions for a tile_id/client"""
 	
 	tile_id = request.args.get("tile_id")
+	tile_ids = request.args.get("tile_ids")
 	country = request.args.get("country")
 	client = request.args.get("client")
 	locale = request.args.get("locale")
@@ -54,6 +55,8 @@ def show_daily_impressions():
 	#get a list of possible locales and countries
 	if client:
 		countries = redshift.get_countries_per_client(cache, mozilla_tiles=mozilla_tiles, client=client, campaign=campaign, locale=locale)
+	elif tile_ids:
+		countries = redshift.get_countries_per_tile(cache, tile_ids)
 	else:
 		countries = redshift.get_countries_per_tile(cache, tile_id)
 	
@@ -83,12 +86,18 @@ def show_daily_impressions():
 		specific_tile = False
 	else:
 		if country:
-			impressions_data = redshift.get_daily_impressions_data(cursor, tile_id=tile_id, country=country)
+			impressions_data = redshift.get_daily_impressions_data(cursor, tile_id=tile_id, tile_ids=tile_ids, country=country)
 		else:
-			impressions_data = redshift.get_daily_impressions_data(cursor, tile_id=tile_id)
-		meta_data = redshift.get_tile_meta_data(cache, tile_id)
-		client = [x[1] for x in meta_data if x[0] == 'title'][0]
-		specific_tile = tile_id
+			impressions_data = redshift.get_daily_impressions_data(cursor, tile_id=tile_id, tile_ids=tile_ids)
+		
+		if tile_ids:
+			meta_data = redshift.get_tile_meta_data(cache, tile_ids)
+			client = [x[1] for x in meta_data if x[0] == 'title'][0]
+			specific_tile = tile_ids
+		else:
+			meta_data = redshift.get_tile_meta_data(cache, tile_id)
+			client = [x[1] for x in meta_data if x[0] == 'title'][0]
+			specific_tile = tile_id
 	
 	#convert the data to be graph-able
 	graph = redshift.convert_impressions_data_for_graph(impressions_data)
@@ -135,6 +144,8 @@ def show_country_impressions():
 			countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_ids=tiles, start_date=start_date, end_date=end_date, locale=locale)
 			meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles)
 	else:
+		if tile_ids:
+			tile_ids = tile_ids.split(',')
 		countries_impressions_data = redshift.get_countries_impressions_data(cursor, start_date=start_date, end_date=end_date, client=client, locale=locale, tile_id=tile_id, tile_ids=tile_ids)
 	
 	#get some meta data about the tile from the tiles database (including bounds for the slider)

@@ -331,3 +331,34 @@ function baseline_chart(){
 		button.innerHTML = "Baseline chart<br>at 0"
 	}
 }
+
+function what_tiles_have_been_selected(){
+	//Finds out which checkboxes on the page have been checked
+	checkboxes = document.getElementsByClassName('multicheck')
+	ids = []
+	for (var x in checkboxes) {
+		if (checkboxes[x].checked===true) {
+			id = checkboxes[x].id.split('select_')[1]
+			ids.push(id)
+		}
+	}
+	return ids
+}
+
+function multiple_tile_selection(tile_id) {
+	//Multiple tiles have been selected
+	//adjust the page accordingly
+	tiles = what_tiles_have_been_selected()
+	if (tiles.length > 1) {
+		area = document.getElementById('multiselect')
+		//extra_button = "<br>"
+		extra_button = " or <button class='btn btn-primary' onclick='multiple_tile_show()'>Show a compilation of tiles " + tiles.join("+") + "</button>"
+		area.innerHTML = extra_button
+	}
+}
+
+function multiple_tile_show(){
+	//shows multiple tiles
+	tiles = what_tiles_have_been_selected()
+	location.href = '/daily_impressions?tile_ids=' + tiles.join(',')
+}
