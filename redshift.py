@@ -1008,7 +1008,8 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 	#now we have to add in all the paid tiles
 	clients = set([x for x in get_sponsored_client_list(cache) if x != 'Mozilla'])
 	
-	invalid = set(["-1", "999", "16903", "16910", "20000", "900000", "5000", "-691"])
+	invalid = set(["-1", "999", "16903", "16910", "20000", "900000", "5000", "-691",
+				   "6745", "6744", "6746", "6740", "6743", "6742"])
 	for client in clients:
 		to_add = {
 			'name': client,
