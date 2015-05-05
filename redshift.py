@@ -9,7 +9,7 @@
 
 from collections import defaultdict
 from os import path
-from json import load, dump
+from json import load, dump, dumps
 from datetime import datetime
 from codecs import open as copen
 from pdb import set_trace
@@ -1008,8 +1008,8 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 	#now we have to add in all the paid tiles
 	clients = set([x for x in get_sponsored_client_list(cache) if x != 'Mozilla'])
 	
-	invalid = set(["-1", "999", "16903", "16910", "20000", "900000", "5000", "-691",
-				   "6745", "6744", "6746", "6740", "6743", "6742"])
+	invalid = set()
+	
 	for client in clients:
 		to_add = {
 			'name': client,
@@ -1018,7 +1018,7 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 		}
 		
 		for tile, stats in tile_data.iteritems():
-			if tile not in invalid: #some legacy thing apparently
+			if tile in cache:
 				title = cache[tile]['title']
 				if title == client:
 					for n, x in enumerate(stats):
@@ -1027,6 +1027,9 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 					created_at = datetime.strptime(cache[tile]['created_at'], "%Y-%m-%d %H:%M:%S.%f")
 					if created_at < to_add['earliest_created_at']:
 						to_add['earliest_created_at'] = created_at
+			else:
+				#make a list of non-existant tiles
+				invalid.update([tile])
 		
 		ctr = round((to_add['stats'][1] / float(to_add['stats'][0])) * 100, 5) if to_add['stats'][0] != 0 else 0
 		to_add['stats'].insert(2, ctr)
@@ -1043,6 +1046,11 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 		#now remove the existing one and replace it
 		mozilla_tiles = [x for x in mozilla_tiles if x['name'] != to_add['name']]
 		mozilla_tiles.append(to_add)
+	
+	#if len(invalid) > 0:
+	#	#ping matthew with an alert for non-existant tiles
+	#	error_report(invalid)
+	print list(invalid)
 	
 	return mozilla_tiles
 
@@ -1082,3 +1090,25 @@ def get_row_count(cursor, table_name):
 	cursor.execute("SELECT COUNT(*) FROM " + table_name + ";")
 	return cursor.fetchall()
 	
+######### Auxiliary functionality #########
+
+def error_report(what):
+	"""Emails Matthew with whatever went wrong. Not currently working."""
+	from smtplib import SMTP #rare one-time import
+	SERVER = "localhost"
+	FROM = "error_report@zenko"
+	TO = ["mruttley@mozilla.com"] # must be a list
+	SUBJECT = "Error Report"
+	TEXT = dumps(what)
+	message = """\
+	From: %s
+	To: %s
+	Subject: %s
+	
+	%s
+	""" % (FROM, ", ".join(TO), SUBJECT, TEXT)
+	# Send the mail
+	server = SMTP(SERVER)
+	server.sendmail(FROM, TO, message)
+	server.quit()
+
