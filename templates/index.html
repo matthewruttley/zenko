@@ -231,9 +231,9 @@
           <div class='row'>
             <ul class="nav nav-tabs">
               {% if specific_tile %}
-              <li role="presentation"><a href="/daily_impressions?tile_id={{tile_id}}">Day-by-day</a></li>
-              <li role="presentation"><a href="/country_impressions?tile_id={{tile_id}}">Country-by-country</a></li>
-              <li role="presentation" class="active"><a href="/locale_impressions?tile_id={{tile_id}}">Locale-by-locale</a></li>
+              <li role="presentation"><a href="/daily_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Day-by-day</a></li>
+              <li role="presentation"><a href="/country_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Country-by-country</a></li>
+              <li role="presentation" class="active"><a href="/locale_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Locale-by-locale</a></li>
               {% else %}
               <li role="presentation"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Day-by-day</a></li>
               <li role="presentation"><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Country-by-country</a></li>
@@ -274,9 +274,9 @@
           <div class='row'>
             <ul class="nav nav-tabs">
               {% if specific_tile %}
-              <li role="presentation" class="active"><a href="/daily_impressions?tile_id={{tile_id}}">Day-by-day</a></li>
-              <li role="presentation"><a href="/country_impressions?tile_id={{tile_id}}">Country-by-country</a></li>
-              <li role="presentation"><a href="/locale_impressions?tile_id={{tile_id}}">Locale-by-locale</a></li>
+              <li role="presentation" class="active"><a href="/daily_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Day-by-day</a></li>
+              <li role="presentation"><a href="/country_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Country-by-country</a></li>
+              <li role="presentation"><a href="/locale_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Locale-by-locale</a></li>
               {% else %}
               <li role="presentation" class="active"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Day-by-day</a></li>
               <li role="presentation"><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Country-by-country</a></li>
@@ -311,9 +311,9 @@
           <div class='row'>
             <ul class="nav nav-tabs">
               {% if specific_tile %}
-              <li role="presentation"><a href="/daily_impressions?tile_id={{tile_id}}">Day-by-day</a></li>
-              <li role="presentation" class="active"><a href="/country_impressions?tile_id={{tile_id}}">Country-by-country</a></li>
-              <li role="presentation"><a href="/locale_impressions?tile_id={{tile_id}}">Locale-by-locale</a></li>
+              <li role="presentation"><a href="/daily_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Day-by-day</a></li>
+              <li role="presentation" class="active"><a href="/country_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Country-by-country</a></li>
+              <li role="presentation"><a href="/locale_impressions?{%if tile_ids%}tile_ids={{tile_ids}}{%else%}tile_id={{tile_id}}{%endif%}">Locale-by-locale</a></li>
               {% else %}
               <li role="presentation"><a href="/daily_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Day-by-day</a></li>
               <li role="presentation" class='active'><a href="/country_impressions?client={{client}}{%if locale%}&locale={{locale}}{%endif%}{%if campaign%}&campaign={{campaign}}{%endif%}">Country-by-country</a></li>

@@ -276,10 +276,11 @@ def get_sponsored_client_list(cache):
 def get_tile_meta_data(cache, tile_id):
 	"""Gets the entry for a specific tile/tiles in the tiles database and returns it as a list of lists"""
 	
-	if "," in tile_id:
-		tile_id = tile_id.split(",")
-		#get the fields for the first tile
+	if ("," in tile_id) or (type(tile_id) == list):
+		if type(tile_id) != list:
+			tile_id = tile_id.split(",")
 		
+		#get the fields for the first tile
 		metadata_table = defaultdict(set)
 		for x in tile_id:
 			for field, value in cache[x].iteritems():
@@ -822,6 +823,10 @@ def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_
 def get_locale_impressions_data(cursor, client=False, start_date=False, end_date=False, country=False, tile_id=False, tile_ids=False):
 	"""Get impressions data locale-by-locale"""
 	
+	print "Got:"
+	print "Tile ID: {0}".format(tile_id)
+	print "Tile IDs: {0}".format(tile_ids)
+	
 	#construct WHERE clause using parameters
 	where = []
 	if start_date:
@@ -836,6 +841,11 @@ def get_locale_impressions_data(cursor, client=False, start_date=False, end_date
 	if country:
 		where.append(u"country_name = '{0}'".format(country))
 	if tile_ids:
+		if type(tile_ids) != list:
+			tile_ids = [str(int(x.strip())) for x in tile_ids.split(',')]
+		
+		print "Tile IDs now: {0}".format(tile_ids)
+		
 		if len(tile_ids) == 1:
 			where.append(u"tile_id = {0}".format(list(tile_ids)[0]))
 		else:

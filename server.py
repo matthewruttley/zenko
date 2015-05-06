@@ -121,7 +121,7 @@ def show_daily_impressions():
 		}
 	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile, impressions_data_graph=graph, campaign=campaign, error=error)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries=countries, impressions_data=impressions_data, country=country, tile_id=tile_id, locale=locale, specific_tile=specific_tile, impressions_data_graph=graph, campaign=campaign, error=error, tile_ids=tile_ids)
 
 @app.route('/country_impressions')
 def show_country_impressions():
@@ -143,6 +143,7 @@ def show_country_impressions():
 	
 	if client == 'Mozilla': #special case since mozilla tiles are allowed to have particular campaigns
 		if campaign:
+			print "Got campaign: {0}".format(campaign)
 			tiles = [x['ids'] for x in mozilla_tiles if x['name'] == campaign][0]
 			countries_impressions_data = redshift.get_countries_impressions_data(cursor, tile_ids=tiles, start_date=start_date, end_date=end_date, locale=locale)
 			meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles, campaign_name=campaign)
@@ -169,9 +170,15 @@ def show_country_impressions():
 		start_bound = [x for x in meta_data if x[0] == 'Client start date'][0][1]
 		end_bound = datetime.now()
 	else: #specific tile
-		meta_data = redshift.get_tile_meta_data(cache, tile_id)
+		
+		if tile_id:
+			meta_data = redshift.get_tile_meta_data(cache, tile_id)
+			specific_tile = tile_id
+		else:
+			meta_data = redshift.get_tile_meta_data(cache, tile_ids)
+			specific_tile = tile_ids
+		
 		client = [x[1] for x in meta_data if x[0] == 'title'][0]
-		specific_tile = tile_id
 		start_bound = [x for x in meta_data if x[0] == 'created_at'][0][1]
 		end_bound = datetime.now()
 	
@@ -189,8 +196,14 @@ def show_country_impressions():
 			'end_value': "{0}, {1}, {2}".format(end_date.year, end_date.month-1, end_date.day),
 		}
 	else:
+		if "," in start_bound:
+			start_bound = [x.strip() for x in start_bound.split(',')]
+			start_bound = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f") for x in start_bound if x != ""]
+			start_bound = min(start_bound)
+		
 		if type(start_bound) == unicode:
 			start_bound = datetime.strptime(start_bound, "%Y-%m-%d %H:%M:%S.%f")
+		
 		slider = {
 			'start_bound': "{0}, {1}, {2}".format(start_bound.year, start_bound.month-1, start_bound.day),
 			'end_bound': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day),
@@ -198,8 +211,15 @@ def show_country_impressions():
 			'end_value': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day),
 		}
 	
+	#reset datatype
+	if type(specific_tile) == list:
+		specific_tile = ", ".join([str(x) for x in specific_tile])
+	
+	if type(tile_ids) == list:
+		tile_ids = ",".join([str(x) for x in tile_ids])
+	
 	#render the template
-	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, slider=slider, specific_tile=specific_tile, locale=locale, campaign=campaign)
+	return render_template("index.html", clients=clients, client=client, meta_data=meta_data, countries_impressions_data=countries_impressions_data, slider=slider, specific_tile=specific_tile, locale=locale, campaign=campaign, tile_id=tile_id, tile_ids=tile_ids)
 
 @app.route('/locale_impressions')
 def show_locale_impressions():
@@ -220,7 +240,10 @@ def show_locale_impressions():
 	if client:
 		countries = redshift.get_countries_per_client(cache, mozilla_tiles=mozilla_tiles, client=client, campaign=campaign)
 	else:
-		countries = redshift.get_countries_per_tile(cache, tile_id)
+		if tile_ids:
+			countries = redshift.get_countries_per_tile(cache, tile_ids)
+		else:
+			countries = redshift.get_countries_per_tile(cache, tile_id)
 
 	if client == 'Mozilla': #special case since mozilla tiles are allowed to have particular campaigns
 		if campaign:
@@ -245,9 +268,14 @@ def show_locale_impressions():
 		start_bound = [x for x in meta_data if x[0] == 'Client start date'][0][1]
 		end_bound = datetime.now()
 	else: #specific tile
-		meta_data = redshift.get_tile_meta_data(cache, tile_id)
+		if tile_id:
+			meta_data = redshift.get_tile_meta_data(cache, tile_id)
+			specific_tile = tile_id
+		else:
+			meta_data = redshift.get_tile_meta_data(cache, tile_ids)
+			specific_tile = tile_ids
+		
 		client = [x[1] for x in meta_data if x[0] == 'title'][0]
-		specific_tile = tile_id
 		start_bound = [x for x in meta_data if x[0] == 'created_at'][0][1]
 		end_bound = datetime.now()
 	
@@ -265,8 +293,15 @@ def show_locale_impressions():
 			'end_value': "{0}, {1}, {2}".format(end_date.year, end_date.month-1, end_date.day),
 		}
 	else:
+		
+		if "," in start_bound:
+			start_bound = [x.strip() for x in start_bound.split(',')]
+			start_bound = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f") for x in start_bound if x != ""]
+			start_bound = min(start_bound)
+		
 		if type(start_bound) == unicode:
 			start_bound = datetime.strptime(start_bound, "%Y-%m-%d %H:%M:%S.%f")
+		
 		slider = {
 			'start_bound': "{0}, {1}, {2}".format(start_bound.year, start_bound.month-1, start_bound.day),
 			'end_bound': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day),
@@ -274,7 +309,7 @@ def show_locale_impressions():
 			'end_value': "{0}, {1}, {2}".format(end_bound.year, end_bound.month-1, end_bound.day),
 		}
 	
-	return render_template("index.html", client=client, clients=clients, start_date=start_date, countries=countries, end_date=end_date, country=country, tile_id=tile_id, specific_tile=tile_id, locale_impressions_data=impressions_data, slider=slider, campaign=campaign)
+	return render_template("index.html", client=client, clients=clients, start_date=start_date, countries=countries, end_date=end_date, country=country, tile_id=tile_id, specific_tile=specific_tile, locale_impressions_data=impressions_data, slider=slider, campaign=campaign, tile_ids=tile_ids)
 
 @app.route('/tile')
 def show_creative_selection_page():
@@ -431,4 +466,3 @@ if __name__ == '__main__':
 	app.debug = True
 	#open_webpage("http://localhost:5000/")
 	app.run()
-
