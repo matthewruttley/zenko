@@ -173,7 +173,7 @@
                   <tbody>
                     {% for tile in campaign.tiles %}
                     <tr>
-                      <td><input type="checkbox" class='multicheck' id='select_{{tile.0}}'></td>
+                      <td><input type="checkbox" onclick='multiple_tile_selection("{{tile.0}}")' class='multicheck' id='select_{{tile.0}}'></td>
                       <td><a href="/daily_impressions?tile_id={{tile.0}}">{{tile.0}}</a></td>
                       <td>{{tile.1}}</td>
                       <td>{{tile.2}}</td>
@@ -548,6 +548,17 @@
         
     </script>
     {% endif %}
+
+  <!-- multi tile select  -->
+  <div id='floating_multi_tile_select'>
+    <br>Tiles selected:<br><br>
+    <span id='which_tiles_selected'>
+      
+    </span>
+    <br><br>
+    <button class='btn btn-primary' onclick='multiple_tile_show()'>Compile tiles</button>
+  </div>
+  <!-- / multi tile select -->
 
     <!-- Bootstrap core JavaScript
     ================================================== -->

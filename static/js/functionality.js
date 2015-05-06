@@ -294,7 +294,6 @@ function setSummaryBoxValues(min, max) {
 	}
 }
 
-
 function showHideRows(min, max){
 	//Shows or hides rows based on the slider
 	
@@ -349,11 +348,14 @@ function multiple_tile_selection(tile_id) {
 	//Multiple tiles have been selected
 	//adjust the page accordingly
 	tiles = what_tiles_have_been_selected()
+	dialog = document.getElementById("floating_multi_tile_select")
 	if (tiles.length > 1) {
-		area = document.getElementById('multiselect')
-		//extra_button = "<br>"
-		extra_button = " or <button class='btn btn-primary' onclick='multiple_tile_show()'>Show a compilation of tiles " + tiles.join("+") + "</button>"
-		area.innerHTML = extra_button
+		//show the container
+		dialog.style.visibility = "visible"
+		area = document.getElementById('which_tiles_selected')
+		area.innerHTML = tiles.join(", ")
+	}else{
+		dialog.style.visibility = "hidden"
 	}
 }
 

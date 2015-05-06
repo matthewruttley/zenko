@@ -153,3 +153,23 @@ body {
   margin-top: 100px;
   margin-bottom: 100px;
 }
+
+#floating_multi_tile_select {
+  padding: 10px;
+  width: 200px;
+  position: fixed;
+  top: 50px;
+  right: 20px;
+  z-index: 100;
+  background-color: lightblue;
+  border-bottom: 1px solid black;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  text-align: center;
+  visibility: hidden;
+  -webkit-box-shadow: 10px 10px 13px 1px rgba(0,0,0,0.27);
+  -moz-box-shadow: 10px 10px 13px 1px rgba(0,0,0,0.27);
+  box-shadow: 10px 10px 13px 1px rgba(0,0,0,0.27);
+  border-bottom-right-radius: 5px;
+	border-bottom-left-radius: 5px;
+}
