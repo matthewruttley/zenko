@@ -9,6 +9,7 @@ from pdb import set_trace
 from webbrowser import open as open_webpage
 from flask import Flask, render_template, request, make_response
 import redshift
+from pdb import set_trace
 app = Flask(__name__)
 
 #set up database connection
@@ -67,6 +68,15 @@ def show_daily_impressions():
 				tiles = [x['ids'] for x in mozilla_tiles if x['name'] == campaign][0]
 				impressions_data = redshift.get_daily_impressions_data(cursor, tile_ids=tiles)
 				meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles, campaign_name=campaign)
+				client = 'Mozilla'
+			else:
+				#All Mozilla data
+				tiles = [] #all tile IDs
+				for x in mozilla_tiles:
+					tiles += list(x['ids'])
+				
+				impressions_data = redshift.get_daily_impressions_data(cursor, tile_ids=tiles)
+				meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles)
 				client = 'Mozilla'
 		else:
 			if country:
