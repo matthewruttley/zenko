@@ -325,6 +325,13 @@ def show_creative_selection_page():
 	if client == "Mozilla": #special case since there are so many different types
 		
 		meta = []
+		
+		#add the fennec (i.e. mobile) tile list to the start as well
+		mozilla_tiles.append({
+			'ids': set(redshift.fennec_tile_list()),
+			'name': 'Fennec'
+		})
+		
 		for tile in mozilla_tiles: #mozilla_tiles has already been pre-loaded above
 			if 'client' not in tile:
 				tiles = []

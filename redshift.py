@@ -246,6 +246,19 @@ def build_mozilla_tile_list(cache):
 	
 	return mozilla_tiles
 
+def fennec_tile_list():
+	"""Returns a list of fennec tile ids, according to:
+	https://bugzilla.mozilla.org/show_bug.cgi?id=1131774"""
+	
+	fennec_tiles = [
+		"629", #Firefox Marketplace
+		"630", #Customize Firefox
+		"631", #Firefox Help and Support
+		"632", #The Mozilla Project
+	]
+	
+	return fennec_tiles
+
 ######### Querying client/tile data ###########
 
 def get_all_locales(cache):
