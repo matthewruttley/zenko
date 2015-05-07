@@ -196,13 +196,14 @@ def show_country_impressions():
 			'end_value': "{0}, {1}, {2}".format(end_date.year, end_date.month-1, end_date.day),
 		}
 	else:
-		if "," in start_bound:
-			start_bound = [x.strip() for x in start_bound.split(',')]
-			start_bound = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f") for x in start_bound if x != ""]
-			start_bound = min(start_bound)
-		
-		if type(start_bound) == unicode:
-			start_bound = datetime.strptime(start_bound, "%Y-%m-%d %H:%M:%S.%f")
+		sb_type = type(start_bound)
+		if (sb_type == str) or (sb_type == unicode):
+			if "," in start_bound:
+				start_bound = [x.strip() for x in start_bound.split(',')]
+				start_bound = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f") for x in start_bound if x != ""]
+				start_bound = min(start_bound)
+			else:
+				start_bound = datetime.strptime(start_bound, "%Y-%m-%d %H:%M:%S.%f")
 		
 		slider = {
 			'start_bound': "{0}, {1}, {2}".format(start_bound.year, start_bound.month-1, start_bound.day),
@@ -293,14 +294,14 @@ def show_locale_impressions():
 			'end_value': "{0}, {1}, {2}".format(end_date.year, end_date.month-1, end_date.day),
 		}
 	else:
-		
-		if "," in start_bound:
-			start_bound = [x.strip() for x in start_bound.split(',')]
-			start_bound = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f") for x in start_bound if x != ""]
-			start_bound = min(start_bound)
-		
-		if type(start_bound) == unicode:
-			start_bound = datetime.strptime(start_bound, "%Y-%m-%d %H:%M:%S.%f")
+		sb_type = type(start_bound)
+		if (sb_type == str) or (sb_type == unicode):
+			if "," in start_bound:
+				start_bound = [x.strip() for x in start_bound.split(',')]
+				start_bound = [datetime.strptime(x, "%Y-%m-%d %H:%M:%S.%f") for x in start_bound if x != ""]
+				start_bound = min(start_bound)
+			else:
+				start_bound = datetime.strptime(start_bound, "%Y-%m-%d %H:%M:%S.%f")
 		
 		slider = {
 			'start_bound': "{0}, {1}, {2}".format(start_bound.year, start_bound.month-1, start_bound.day),
