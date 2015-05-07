@@ -45,27 +45,34 @@ def build_tiles_cache(cursor):
 		redownload = True
 	
 	if redownload:
-		print "Refreshing tiles cache from remote server (will take ~2 seconds)..."
+		print "Refreshing tiles cache from remote server (will take ~2 seconds)...",
 		#get the tiles
 		cursor.execute("SELECT * FROM tiles;")
 		tiles = cursor.fetchall()
 		#get the countries
 		print "done"
-		print "Refreshing tile country cache from remote server (could take up to ~29 seconds)..."
-		cursor.execute("""
-			SELECT DISTINCT
-				tiles.id,
-				countries.country_name
-			FROM
-				tiles
-			INNER JOIN impression_stats_daily ON tiles.id = impression_stats_daily.tile_id
-			INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
-			ORDER BY
-				countries.country_name ASC;
-			""")
-		tile_countries = defaultdict(set)
-		for tile, country in cursor.fetchall():
-			tile_countries[tile].update([country])
+		
+		#A quick fix to this problem is just to assume that there's an entry (even if blank)
+		#for each country for each tile. 
+		
+		countries = get_all_countries_from_server(cursor)
+		
+		#print "Refreshing tile country cache from remote server (could take up to ~29 seconds)..."
+		#cursor.execute("""
+		#	SELECT DISTINCT
+		#		tiles.id,
+		#		countries.country_name
+		#	FROM
+		#		tiles
+		#	INNER JOIN impression_stats_daily ON tiles.id = impression_stats_daily.tile_id
+		#	INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+		#	ORDER BY
+		#		countries.country_name ASC;
+		#	""")
+		#tile_countries = defaultdict(set)
+		#for tile, country in cursor.fetchall():
+		#	tile_countries[tile].update([country])
+		
 		#now insert into a dictionary object that will be nicely serializeable
 		cache = {}
 		for tile in tiles:
@@ -78,7 +85,8 @@ def build_tiles_cache(cursor):
 				'enhanced_image_uri': tile[6],
 				'locale': tile[7],
 				'created_at': unicode(tile[8]),
-				'countries': sorted(list(tile_countries[tile[0]])) if tile[0] in tile_countries else []
+				'countries': countries
+				#'countries': sorted(list(tile_countries[tile[0]])) if tile[0] in tile_countries else []
 			}
 		cache['last_updated'] = unicode(datetime.now())
 		with copen('tiles.cache', 'w', 'utf8') as f:
@@ -258,6 +266,17 @@ def fennec_tile_list():
 	]
 	
 	return fennec_tiles
+
+def get_all_countries_from_server(cursor):
+	"""Gets a list of all countries in the database"""
+	
+	print "Refreshing a list of all countries from remote server (will take ~1 second)...",
+	query = "SELECT country_name FROM countries"
+	cursor.execute(query)
+	print "done"
+	countries = [x[0] for x in cursor.fetchall()]
+	
+	return countries
 
 ######### Querying client/tile data ###########
 
