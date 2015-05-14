@@ -186,6 +186,14 @@ def build_mozilla_tile_list(cache):
 		{
 			"name": '"A brand new tiles experience"',
 			'url_must_match': ['https://www.mozilla.com/firefox/tiles']
+		},
+		{
+			"name": "Stop Surveillance",
+			"title_must_match": ['Stop Surveillance']
+		},
+		{
+			"name": "Get smart on mass surveillance",
+			"title_must_match": ['Get smart on mass surveillance']
 		}
 	]
 	
