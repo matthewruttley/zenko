@@ -186,6 +186,19 @@
           </div>
           {% endfor %}
           {% else %}
+            {% if client == 'Dashlane' %}
+            <hr>
+            <div class='row'>
+              <div class='col-md-11 col-sm-6'>
+                <p>
+                  Shortcuts to specific campaigns:
+                  <ul>
+                    <li><a href='http://localhost:5000/daily_impressions?tile_ids=1305,1291,1290,1289'>Dashlane May-June (new creative)</a></li>
+                  </ul>
+                </p>
+              </div>
+            </div>
+            {% endif %}
           <hr>
           <div class='row'>
             <div class='col-md-11 col-sm-6'>
