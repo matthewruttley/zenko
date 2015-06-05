@@ -128,13 +128,14 @@
           </div>
           <br>
           <div class='row'>
-            <div class='col-md-10 col-sm-6'>
+            <div class='col-md-12 col-sm-6'>
               <table class='table table-striped table-hover sortable'>
                 <thead>
                   <th>Campaign</th>
                   <th>Actions</th>
                   <th># of Tiles</th>
                   <th># of Locales</th>
+                  <th>Last Modified</th>
                 </thead>
                 <tbody>
                   {% for campaign in mozilla_campaign_meta_data %}
@@ -146,6 +147,7 @@
                     </td>
                     <td>{{campaign.tiles}}</td>
                     <td>{{campaign.locales}}</td>
+                    <td>{{campaign.ago}}</td>
                   </tr>
                   {% endfor %}
                 </tbody>

@@ -10,7 +10,7 @@
 from collections import defaultdict
 from os import path
 from json import load, dump, dumps
-from datetime import datetime
+from datetime import datetime, timedelta
 from codecs import open as copen
 from pdb import set_trace
 from re import search
@@ -19,6 +19,9 @@ from itertools import chain
 import psycopg2
 from login import login_string #login details, not committed
 from isoweek import Week
+from ago import human, delta2dict
+
+verbose = False #debug setting
 
 ############# Basic caching and setup ##################
 
@@ -101,10 +104,6 @@ def build_tiles_cache(cursor):
 def build_mozilla_tile_list(cache):
 	"""Finds mozilla tiles in the cache. This is complicated because there is currently no separate Advertiser/Client table.
 	Returns an object with them"""
-
-
-
-
 	
 	mozilla_tiles = [
 		{
@@ -222,6 +221,10 @@ def build_mozilla_tile_list(cache):
 		{
 			"name": "Get smart on mass surveillance",
 			"title_must_match": ['Get smart on mass surveillance']
+		},
+		{
+			"name": "Fennec Tiles",
+			"id_must_match": ["629", "630", "631", "632"] #https://bugzilla.mozilla.org/show_bug.cgi?id=1131774
 		}
 	]
 	
@@ -229,7 +232,7 @@ def build_mozilla_tile_list(cache):
 	for x in mozilla_tiles:
 		for k, v in x.iteritems():
 			if 'must' in k:
-				if type(v) != list:
+				if type(v) != list: #everything apart from the name must have a list as the value
 					print "Error in ruleset!"
 					return False
 	
@@ -237,17 +240,15 @@ def build_mozilla_tile_list(cache):
 	sponsored = set(get_sponsored_client_list(cache))
 	
 	#find matches
+	now = datetime.now()
+	ago = datetime(1900,1,1) #base date
+	
 	for x in range(len(mozilla_tiles)):
+		mozilla_tiles[x]['last_modified'] = ago
 		if len(mozilla_tiles[x]) > 1: #must have some sort of rule definition
 			mozilla_tiles[x]['ids'] = [] #add container
-			
-			#print "Processing Rule {0} ({1})".format(x, mozilla_tiles[x]['name'])
-			
-			#number of tests that need passing
 			test_count = len([y for y in mozilla_tiles[x] if 'match' in y])
-			
-			#print "Tests to pass: {0}".format(test_count)
-			
+
 			for tile_id, tile_info in cache.iteritems():
 				tests_passed = 0
 				if 'url_must_match' in mozilla_tiles[x]:
@@ -262,46 +263,42 @@ def build_mozilla_tile_list(cache):
 							tests_passed += 1
 							break
 				
+				if 'id_must_match' in mozilla_tiles[x]:
+					for matcher in mozilla_tiles[x]['id_must_match']:
+						if str(tile_id) == matcher:
+							tests_passed += 1 #hackish but works for:
+							break #https://bugzilla.mozilla.org/show_bug.cgi?id=1131774
+				
 				if tests_passed >= test_count:
 					mozilla_tiles[x]['ids'].append(tile_id)
-					#print tile_id, tile_info['title'], tile_info['target_url']
+					
+					#also put in last modified
+					created_at = datetime.strptime(tile_info['created_at'], "%Y-%m-%d %H:%M:%S.%f")
+					if created_at > mozilla_tiles[x]['last_modified']:
+						mozilla_tiles[x]['last_modified'] = created_at
+						mozilla_tiles[x]['ago'] = human(created_at, precision=3, past_tense='{0} ago')
 			
 			mozilla_tiles[x]['ids'] = set(mozilla_tiles[x]['ids'])
-			#print "{0} tiles matched".format(len(mozilla_tiles[x]['ids']))
 	
 	#output what is left uncategorized
 	already = set(chain.from_iterable([x['ids'] for x in mozilla_tiles if 'ids' in x]))
-	
-	#print "Already categorized {0}/{1} tiles".format(len(already), len(cache))
 	
 	for tile_id, tile_info in cache.iteritems():
 		if tile_id not in already:
 			if tile_info['title'] not in sponsored:
 				if tile_info['type'] != 'organic':
-					print tile_id, tile_info['title'], tile_info['target_url']
+					print "Error! Not categorized!", tile_id, tile_info['title'], tile_info['target_url']
 
 	#check that nothing was caught by more than one
-	for tile in mozilla_tiles:
-		for other_tile in mozilla_tiles:
-			if tile['name'] != other_tile['name']:
-				same = set(tile['ids']).intersection(other_tile['ids'])
-				if len(same) > 0:
-					print "Warning! {0} are in {1} and {2}".format(same, tile['name'], other_tile['name'])
+	if verbose:
+		for tile in mozilla_tiles:
+			for other_tile in mozilla_tiles:
+				if tile['name'] != other_tile['name']:
+					same = set(tile['ids']).intersection(other_tile['ids'])
+					if len(same) > 0:
+						print "Warning! {0} are in {1} and {2}".format(same, tile['name'], other_tile['name'])
 	
 	return mozilla_tiles
-
-def fennec_tile_list():
-	"""Returns a list of fennec tile ids, according to:
-	https://bugzilla.mozilla.org/show_bug.cgi?id=1131774"""
-	
-	fennec_tiles = [
-		"629", #Firefox Marketplace
-		"630", #Customize Firefox
-		"631", #Firefox Help and Support
-		"632", #The Mozilla Project
-	]
-	
-	return fennec_tiles
 
 def get_all_countries_from_server(cursor):
 	"""Gets a list of all countries in the database"""

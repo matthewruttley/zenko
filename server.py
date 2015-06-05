@@ -327,12 +327,6 @@ def show_creative_selection_page():
 		
 		meta = []
 		
-		#add the fennec (i.e. mobile) tile list to the start as well
-		mozilla_tiles.append({
-			'ids': set(redshift.fennec_tile_list()),
-			'name': 'Fennec'
-		})
-		
 		for tile in mozilla_tiles: #mozilla_tiles has already been pre-loaded above
 			if 'client' not in tile:
 				tiles = []
@@ -343,9 +337,13 @@ def show_creative_selection_page():
 					{
 						"name": tile['name'],
 						"tiles": len(tile['ids']),
-						"locales": len(set([y[3] for y in tile['tiles']]))
+						"locales": len(set([y[3] for y in tile['tiles']])),
+						"last_modified": tile['last_modified'],
+						"ago": tile['ago']
 					}
 				)
+		
+		meta = sorted(meta, key=lambda x: x['last_modified'], reverse=True)
 		
 		return render_template("index.html", clients=clients, client=client, creative=mozilla_tiles, mozilla=True, mozilla_campaign_meta_data=meta)
 		
