@@ -101,8 +101,18 @@ def build_tiles_cache(cursor):
 def build_mozilla_tile_list(cache):
 	"""Finds mozilla tiles in the cache. This is complicated because there is currently no separate Advertiser/Client table.
 	Returns an object with them"""
+
+
+
+
 	
 	mozilla_tiles = [
+		{
+			"name": "Foxyeah",
+			"url_must_match": [
+				"https://foxyeah.mozilla.org/?utm_source=directory-tiles&utm_medium=tiles&utm_campaign=sc-2015-foxyeah&utm_content=send-invite"
+			]
+		},
 		{
 			"name": "Customize Firefox",
 			"url_must_match": ["fastestfirefox.com", "https://addons.mozilla.org/en-US/android/"]
@@ -112,8 +122,20 @@ def build_mozilla_tile_list(cache):
 			"url_must_match": ["https://www.mozilla.com/firefox/independent/?utm_source=directory-tiles&utm_medium=directory-tiles&utm_campaign=FX10"]
 		},
 		{
-			'name': "Firefox for Android",
+			'name': "Firefox for Android DT v1",
 			'url_must_match': ['https://play.google.com/store/apps/details?id=org.mozilla.firefox&referrer=utm_source%3Dmozilla%26utm_medium%3Dbanner%26utm_campaign%3Ddesktop01']
+		},
+		{
+			'name': "Firefox for Android DT v2",
+			'url_must_match': ["http://android.www.mozilla.com/firefox/android/?utm_source=directory-tiles&utm_medium=tiles&utm_campaign=sc-2015-fennec&utm_content=phone-in-hand"]
+		},
+		{
+			'name': "Firefox for Android ST",
+			'url_must_match': [
+				'https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=androidenthusiasts&utm_campaign=firefoxforandroid',
+				'https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=mobileproviders&utm_campaign=firefoxforandroid',
+				'https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=mozillafans&utm_campaign=firefoxforandroid'
+			]
 		},
 		{
 			"name": 'Firefox Help and Support',
@@ -126,6 +148,12 @@ def build_mozilla_tile_list(cache):
 		{
 			"name": "Firefox Sync",
 			"title_must_match": ["Firefox Sync"]
+		},
+		{
+			"name": "Firefox Hello",
+			"title_must_match": [
+				'Firefox Hello', 
+			]
 		},
 		{
 			"name": "Get Smart on Privacy",
