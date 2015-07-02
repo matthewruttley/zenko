@@ -172,7 +172,7 @@ def build_mozilla_tile_list(cache):
 		},
 		{
 			"name": "Mozilla Community",
-			'url_must_match': ['http://contribute.mozilla.org/']
+			'url_must_match': ['http://contribute.mozilla.org/', 'http://mozilla.de/gemeinschaft/index.html']
 		},
 		{
 			"name": "Mozilla Developer Network",
