@@ -113,6 +113,10 @@ def build_mozilla_tile_list(cache):
 			]
 		},
 		{
+			"name": "Foxyeah #2",
+			"url_must_match": ["http://mzl.la/1HqQv3A"]
+		},
+		{
 			"name": "Customize Firefox",
 			"url_must_match": ["fastestfirefox.com", "https://addons.mozilla.org/en-US/android/"]
 		},
