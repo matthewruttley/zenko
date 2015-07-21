@@ -107,6 +107,20 @@ def build_mozilla_tile_list(cache):
 	
 	mozilla_tiles = [
 		{
+			"name": "Pocket for Firefox",
+			"url_must_match": [
+				"https://www.mozilla.org/firefox/pocket/?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop"
+			]
+		},
+		{
+			"name": "Sign up for our newsletter",
+			"url_must_match": ['https://www.mozilla.org/newsletter?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop']
+		},
+		{
+			"name": "Follow us on social",
+			"url_must_match": ['http://mzl.la/1Vg8Hmk', 'http://mzl.la/1Mdhxxu', 'http://mzl.la/1RGAtsX', 'http://mzl.la/1KdVzbh', 'http://mzl.la/1HC2Bps']
+		},
+		{
 			"name": "Foxyeah",
 			"url_must_match": [
 				"https://foxyeah.mozilla.org/?utm_source=directory-tiles&utm_medium=tiles&utm_campaign=sc-2015-foxyeah&utm_content=send-invite"
