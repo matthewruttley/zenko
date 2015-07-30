@@ -205,8 +205,29 @@ def build_mozilla_tile_list(cache):
 			'url_must_match': ['http://contribute.mozilla.org/', 'http://mozilla.de/gemeinschaft/index.html']
 		},
 		{
-			"name": "Mozilla Developer Network",
-			"url_must_match": ["developer.mozilla.org"]
+			"name": "MDN Suggested",
+			"url_must_match": [
+				"https://developer.mozilla.org/Learn?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_WebLearner",
+				"https://developer.mozilla.org/?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_Mozilla_Sites",
+				"https://developer.mozilla.org/?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_WebDev"
+			]
+		},
+		{
+			"name": "MDN Directory",
+			"url_must_match": [
+				"https://developer.mozilla.org/en-GB/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/en-US/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/es/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/pt-BR/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"*https://developer.mozilla.org/en-US/",
+				"https://developer.mozilla.org/ru/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/de/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/ja/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/pl/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/fr/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"*https://developer.mozilla.org/",
+				"*https://developer.mozilla.org",
+			]
 		},
 		{
 			"name": "Mozilla Festival",
@@ -283,9 +304,14 @@ def build_mozilla_tile_list(cache):
 				tests_passed = 0
 				if 'url_must_match' in mozilla_tiles[x]:
 					for matcher in mozilla_tiles[x]['url_must_match']:
-						if matcher in tile_info['target_url']:
-							tests_passed += 1
-							break
+						if matcher.startswith('*'): #must be exact
+							if matcher[1:] == tile_info['target_url']:
+								tests_passed += 1
+								break
+						else:
+							if matcher in tile_info['target_url']:
+								tests_passed += 1
+								break
 				
 				if 'title_must_match' in mozilla_tiles[x]:
 					for matcher in mozilla_tiles[x]['title_must_match']:
