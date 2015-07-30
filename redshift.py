@@ -107,13 +107,25 @@ def build_mozilla_tile_list(cache):
 	
 	mozilla_tiles = [
 		{
+			"name": "Follow us on Twitter",
+			"url_must_match": [
+				"http://mzl.la/1U7wxPL", "http://mzl.la/1ILjvWb", "http://mzl.la/1KAsk2A"
+			]
+		},
+		{
+			"name": "Squarespace_Directory_v1",
+			"url_must_match": [
+				"https://www.mozilla.org/newsletter?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop"
+			]
+		},
+		{
 			"name": "Pocket for Firefox",
 			"url_must_match": [
 				"https://www.mozilla.org/firefox/pocket/?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop"
 			]
 		},
 		{
-			"name": "Sign up for our newsletter",
+			"name": "Newsletter_Directory1",
 			"url_must_match": ['https://www.mozilla.org/newsletter?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop']
 		},
 		{
