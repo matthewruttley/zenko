@@ -387,7 +387,7 @@ def get_sponsored_client_list(cache):
 	#get all tiles
 	clients = set()
 	for x in cache.itervalues():
-		if x['type'] == "sponsored":
+		if (x['type'] in "sponsored") or (x['title'] == "Yahoo"):
 			if "/" not in x['title']:
 				clients.update([x['title']])
 	
