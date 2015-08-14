@@ -107,6 +107,18 @@ def build_mozilla_tile_list(cache):
 	
 	mozilla_tiles = [
 		{
+			"name": "Make Firefox Your Default Browser",
+			"url_must_match": [
+				"https://support.mozilla.org/kb/make-firefox-your-default-browser?utm_source=directory-tiles&utm_medium=tiles&utm_content=DefaultV1&utm_campaign=Win10"
+			]
+		},
+		{
+			"name": "Privacy Tips",
+			"url_must_match": [
+				"https://www.mozilla.org/privacy/tips/?utm_source=directory-tiles&utm_medium=tiles&utm_content=PrivacyV1&utm_campaign=desktop"
+			]
+		},
+		{
 			"name": "Follow us on Twitter",
 			"url_must_match": [
 				"http://mzl.la/1U7wxPL", "http://mzl.la/1ILjvWb", "http://mzl.la/1KAsk2A"
