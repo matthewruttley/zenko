@@ -125,20 +125,16 @@ def build_mozilla_tile_list(cache):
 			]
 		},
 		{
-			"name": "Squarespace_Directory_v1",
-			"url_must_match": [
-				"https://www.mozilla.org/newsletter?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop"
-			]
-		},
-		{
 			"name": "Pocket for Firefox",
 			"url_must_match": [
 				"https://www.mozilla.org/firefox/pocket/?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop"
 			]
 		},
 		{
-			"name": "Newsletter_Directory1",
-			"url_must_match": ['https://www.mozilla.org/newsletter?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop']
+			"name": "Newsletter_Directory",
+			"url_must_match": [
+				'https://www.mozilla.org/newsletter?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop'
+			]
 		},
 		{
 			"name": "Follow us on social",
