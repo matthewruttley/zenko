@@ -364,3 +364,93 @@ function multiple_tile_show(){
 	tiles = what_tiles_have_been_selected()
 	location.href = '/daily_impressions?tile_ids=' + tiles.join(',')
 }
+
+function launch_yahoo_filter() {
+	//constructs a url and redirects to it
+	
+	tile_ids = get_tiles_selected()
+	tile_ids = tile_ids.join(",")
+	
+	location.href = "/daily_impressions?tile_ids=" + tile_ids
+	
+}
+
+function get_tiles_selected() {
+	//gets the ids from the tiles that have been selected in the yahoo filters
+	
+	flights = document.getElementById('yahoo_flight_dates').value
+	cats = document.getElementById('yahoo_categories').value
+	
+	if ((flights.indexOf('All')!=-1) && (cats.indexOf('All')!=-1)) { //neither
+		return "all"
+	}
+	
+	if ((flights.indexOf('All')==-1) && (cats.indexOf('All')==-1)) { //both
+		//find intersection
+		flights = flights.split(',')
+		cats = cats.split(',')
+		intersection = []
+		console.log('got cats and flight, cats len ' + cats.length + " flight len " + flights.length)
+		for (var flight of flights) {
+			if (cats.indexOf(flight) != -1) {
+				intersection.push(flight)
+			}
+		}
+		console.log('intersection len ' + intersection.length)
+		return intersection
+	}
+	
+	if (flights.indexOf('All')==-1) { //just flights
+		flights = flights.split(',')
+		return flights
+	}
+	
+	if (cats.indexOf('All')==-1) { //just cats
+		cats = cats.split(',')
+		return cats
+	}
+	
+	console.log('error in yahoo intersection')
+	return "error" //something went wrong, so just return nothing
+}
+
+function filter_yahoo(){
+	//filters yahoo tiles based on the contents of the select elements
+	
+	//first get lists of tiles
+	tile_ids = get_tiles_selected()
+	
+	if (tile_ids == "all") {
+		everything = true
+		document.getElementById("yahoo_filter_button").style.visibility = 'hidden'
+	}else{
+		everything = false
+		document.getElementById("yahoo_filter_button").style.visibility = 'visible'
+		document.getElementById("num_yahoo_tiles").innerHTML = tile_ids.length
+	}
+	
+	table = document.getElementById('tile_list')
+	rows = table.children[1].children //tbody child elements
+	
+	for (var x = 0; x < rows.length; x++) {
+		row = rows[x]
+		tile_id = row.children[1].children[0].textContent //second td containing id
+		if (everything) {
+			row.style.display = 'table-row'	
+		}else{
+			if (tile_ids.indexOf(tile_id) != -1) {
+				row.style.display = 'table-row'	
+			}else{
+				row.style.display = 'none'
+			}
+		}
+	}
+	
+}
+
+
+
+
+
+
+

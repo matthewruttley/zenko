@@ -173,3 +173,11 @@ body {
   border-bottom-right-radius: 5px;
 	border-bottom-left-radius: 5px;
 }
+
+.yahoo_filter {
+  float: left;
+}
+
+#yahoo_filter_container {
+  visibility: hidden;
+}

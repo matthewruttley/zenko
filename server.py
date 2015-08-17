@@ -4,7 +4,8 @@
 #> python server.py
 #and then visit http://localhost:5000
 
-from datetime import datetime
+from collections import defaultdict
+from datetime import datetime, timedelta
 from pdb import set_trace
 from webbrowser import open as open_webpage
 from flask import Flask, render_template, request, make_response
@@ -346,8 +347,9 @@ def show_creative_selection_page():
 		meta = sorted(meta, key=lambda x: x['last_modified'], reverse=True)
 		
 		return render_template("index.html", clients=clients, client=client, creative=mozilla_tiles, mozilla=True, mozilla_campaign_meta_data=meta)
-		
+	
 	else:
+		
 		#get a list of possible locales and countries
 		attributes = redshift.get_client_attributes(cursor, cache, client)
 		
@@ -356,6 +358,53 @@ def show_creative_selection_page():
 			tiles = redshift.get_tiles_per_client(cache, client)
 		else:
 			tiles = redshift.get_tiles_from_client_in_locale(cache, client, locale)
+	
+		if client == 'Yahoo':
+			
+			#have to provide extra category filtering information if its yahoo
+			cats = defaultdict(list)
+			
+			#also have to provide week information
+			#have to wind things up to each next monday
+			flight_start_dates = defaultdict(list)
+			jumps = {
+						'Monday': 0,
+						'Tuesday': 6,
+						'Wednesday': 5,
+						'Thursday': 4,
+						'Friday': 3,
+						'Saturday': 2,
+						'Sunday': 1
+					}
+			
+			for tile in tiles:
+				if 'mz_cat' in tile['target_url']:
+					cat = tile['target_url'].split('mz_cat=')[1].split('&')[0].strip()
+					cats[cat].append(tile['id'])
+				else:
+					#utm params can be missing
+					sub = tile['target_url'].split('yahoo.com/')[1].split('/')[0].strip()
+					if sub == 'travel':
+						cats['travel_gen'].append(tile['id'])
+				
+				date = datetime.strptime(tile['created_at'].split()[0], '%Y-%m-%d')
+				day = date.strftime('%A')
+				
+				#find the next Monday
+				next_monday = (date + timedelta(days=jumps[day])).strftime('Week starting Monday %Y-%m-%d')
+				flight_start_dates[next_monday].append(tile['id'])
+				
+			cats = [[k, ','.join(v)] for k,v in cats.iteritems()]
+			cats = sorted(cats)
+			flight_start_dates = [[k, ','.join(v)] for k,v in flight_start_dates.iteritems()]
+			flight_start_dates = sorted(flight_start_dates)
+			
+			yahoo_filter = {
+				'flight_start_dates': flight_start_dates,
+				'categories': cats
+			}
+			
+			return render_template("index.html", clients=clients, attributes=attributes, client=client, creative=tiles, locale=locale, yahoo_filter=yahoo_filter)
 	
 		#render the template
 		return render_template("index.html", clients=clients, attributes=attributes, client=client, creative=tiles, locale=locale)
