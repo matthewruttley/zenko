@@ -4,8 +4,7 @@
 #> python server.py
 #and then visit http://localhost:5000
 
-from collections import defaultdict
-from datetime import datetime, timedelta
+from datetime import datetime
 from pdb import set_trace
 from webbrowser import open as open_webpage
 from flask import Flask, render_template, request, make_response
@@ -360,50 +359,7 @@ def show_creative_selection_page():
 			tiles = redshift.get_tiles_from_client_in_locale(cache, client, locale)
 	
 		if client == 'Yahoo':
-			
-			#have to provide extra category filtering information if its yahoo
-			cats = defaultdict(list)
-			
-			#also have to provide week information
-			#have to wind things up to each next monday
-			flight_start_dates = defaultdict(list)
-			jumps = {
-						'Monday': 0,
-						'Tuesday': 6,
-						'Wednesday': 5,
-						'Thursday': 4,
-						'Friday': 3,
-						'Saturday': 2,
-						'Sunday': 1
-					}
-			
-			for tile in tiles:
-				if 'mz_cat' in tile['target_url']:
-					cat = tile['target_url'].split('mz_cat=')[1].split('&')[0].strip()
-					cats[cat].append(tile['id'])
-				else:
-					#utm params can be missing
-					sub = tile['target_url'].split('yahoo.com/')[1].split('/')[0].strip()
-					if sub == 'travel':
-						cats['travel_gen'].append(tile['id'])
-				
-				date = datetime.strptime(tile['created_at'].split()[0], '%Y-%m-%d')
-				day = date.strftime('%A')
-				
-				#find the next Monday
-				next_monday = (date + timedelta(days=jumps[day])).strftime('Week starting Monday %Y-%m-%d')
-				flight_start_dates[next_monday].append(tile['id'])
-				
-			cats = [[k, ','.join(v)] for k,v in cats.iteritems()]
-			cats = sorted(cats)
-			flight_start_dates = [[k, ','.join(v)] for k,v in flight_start_dates.iteritems()]
-			flight_start_dates = sorted(flight_start_dates)
-			
-			yahoo_filter = {
-				'flight_start_dates': flight_start_dates,
-				'categories': cats
-			}
-			
+			yahoo_filter = redshift.filter_yahoo_tiles(tiles)
 			return render_template("index.html", clients=clients, attributes=attributes, client=client, creative=tiles, locale=locale, yahoo_filter=yahoo_filter)
 	
 		#render the template
@@ -455,28 +411,30 @@ def engagement_testing():
 	
 	return render_template("engagement.html", clients=clients, client=client, impressions_data=impressions_data, column_headers=column_headers, time_unit=time_unit, impressions_data_graph=impressions_data_graph)
 
+@app.route("/overview_interactive")
+def overview_interactive():
+	"""Testing version of an interactive overview"""
+
 @app.route("/overview")
 def overview():
 	"""Shows an overview page"""
 	
+	data = {}
+	
 	#get a list of clients for the side bar
-	clients = redshift.get_sponsored_client_list(cache)
+	data['clients'] = redshift.get_sponsored_client_list(cache)
 
 	#get a list of all possible locales and countries
-	locales = redshift.get_all_locales(cache)
-	countries = redshift.get_all_countries(cache)
+	data['locales'] = redshift.get_all_locales(cache)
+	data['countries'] = redshift.get_all_countries(cache)
 	
 	#get the parameters
-	country = request.args.get('country')
-	locale = request.args.get('locale')
-	start_date = request.args.get('start_date')
-	end_date = request.args.get('end_date')
+	data['country'] = request.args.get('country')
+	data['locale'] = request.args.get('locale')
+	data['start_date'] = request.args.get('start_date')
+	data['end_date'] = request.args.get('end_date')
 	
-	#get the data
-	data = {}
-	data['impressions'] = redshift.get_overview_data(cursor, mozilla_tiles, cache, country=country, locale=locale, start_date=start_date, end_date=end_date)
-	
-	#slider parameters
+	#set slider defaults
 	#must remember that "bound" means the actual box limits and "values" means the pointer positions.
 	slider = { #set defaults
 		'start_value': "2014, 8, 12",
@@ -485,19 +443,31 @@ def overview():
 		'end_bound': "{0}, {1}, {2}".format(datetime.now().year, datetime.now().month-1, datetime.now().day),
 	}
 	
-	if start_date: #set possible custom start date
-		slider['start_value'] = [int(x) for x in start_date.split("-")]
+	#get the data
+	client = request.args.get('client')
+	
+	if client == 'Yahoo':
+		tiles = redshift.get_tiles_per_client(cache, "Yahoo")
+		yahoo_filter = redshift.filter_yahoo_tiles(tiles)
+		data['impressions'] = redshift.get_yahoo_overview(cursor, yahoo_filter, country=data['country'], locale=data['locale'], start_date=data['start_date'], end_date=data['end_date'])
+		data['yahoo'] = True
+	else:
+		data['impressions'] = redshift.get_overview_data(cursor, mozilla_tiles, cache, country=data['country'], locale=data['locale'], start_date=data['start_date'], end_date=data['end_date'])
+	
+	#slider parameters
+	if data['start_date']: #set possible custom start date
+		slider['start_value'] = [int(x) for x in data['start_date'].split("-")]
 		slider['start_value'][1] = slider['start_value'][1]-1
 		slider['start_value'] = str(slider['start_value'])[1:-1]
 	
-	if end_date:
-		slider['end_value'] = [int(x) for x in end_date.split("-")]
+	if data['end_date']:
+		slider['end_value'] = [int(x) for x in data['end_date'].split("-")]
 		slider['end_value'][1] = slider['end_value'][1]-1
 		slider['end_value'] = str(slider['end_value'])[1:-1]
 	
 	data['slider'] = slider
 	
-	return render_template("overview.html", data=data, clients=clients, country=country, locale=locale, countries=countries, locales=locales)
+	return render_template("overview.html", data=data)
 
 @app.route("/projection")
 def projection():

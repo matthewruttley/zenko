@@ -229,12 +229,16 @@ function filter_overview() {
 	//filters the overview page
 	locale = document.getElementById('locales').value
 	country = document.getElementById('countries').value
+	
 	parameters = []
 	if (locale!='All Locales') {
 		parameters.push("locale="+locale)
 	}
 	if (country!='All Countries') {
 		parameters.push("country="+country)
+	}
+	if ('client=Yahoo' in location.href) {
+		parameters.push("client=Yahoo")
 	}
 	var chosen_values = $("#slider").dateRangeSlider("values")
 	start_date = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")

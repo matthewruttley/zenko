@@ -483,6 +483,57 @@ def get_client_meta_data(cache, client=False, locale=False):
 	data = sorted(data.items())
 	return data
 
+def filter_yahoo_tiles(tiles):
+	"""Filters yahoo tiles from an existing set of tiles pulled from the cache.
+	Returns a dictionary with two lists of lists.
+	Each element in the list is [category/flight, csv of tile ids]
+	"""
+	
+	#category repository
+	cats = defaultdict(list)
+	
+	#also have to provide week information
+	#have to wind things up to each next monday
+	flight_start_dates = defaultdict(list)
+	jumps = {
+				'Monday': 0,
+				'Tuesday': 6,
+				'Wednesday': 5,
+				'Thursday': 4,
+				'Friday': 3,
+				'Saturday': 2,
+				'Sunday': 1
+			}
+	
+	for tile in tiles:
+		if 'mz_cat' in tile['target_url']:
+			cat = tile['target_url'].split('mz_cat=')[1].split('&')[0].strip()
+			cats[cat].append(tile['id'])
+		else:
+			#utm params can be missing
+			sub = tile['target_url'].split('yahoo.com/')[1].split('/')[0].strip()
+			if sub == 'travel':
+				cats['travel_gen'].append(tile['id'])
+		
+		date = datetime.strptime(tile['created_at'].split()[0], '%Y-%m-%d')
+		day = date.strftime('%A')
+		
+		#find the next Monday
+		next_monday = (date + timedelta(days=jumps[day])).strftime('Week starting Monday %Y-%m-%d')
+		flight_start_dates[next_monday].append(tile['id'])
+		
+	cats = [[k, ','.join(v)] for k,v in cats.iteritems()]
+	cats = sorted(cats)
+	flight_start_dates = [[k, ','.join(v)] for k,v in flight_start_dates.iteritems()]
+	flight_start_dates = sorted(flight_start_dates)
+	
+	yahoo_filter = {
+		'flight_start_dates': flight_start_dates,
+		'categories': cats
+	}
+	
+	return yahoo_filter
+
 def get_tiles_from_client_in_locale(cache, client, locale):
 	"""Gets a list of tiles that run in a particular locale for a particular client"""
 	tiles = []
@@ -1193,6 +1244,82 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 	
 	return mozilla_tiles
 
+def get_yahoo_overview(cursor, yahoo_filter, country=False, locale=False, start_date=False, end_date=False):
+	"""Creates an overview of yahoo data"""
+	
+	#First need to create a full list of yahoo tile ids
+	#And create a useful id to category payload
+	id_to_category = {}
+	all_yahoo_tile_ids = []
+	for x in yahoo_filter['categories']:
+		ids = x[1].split(',')
+		all_yahoo_tile_ids += ids
+		for i in ids: 
+			id_to_category[i] = x[0]
+	
+	#Decide the parameters (like country, date etc)
+	where = []
+	if country: where.append(u"country_name = '" + country + "'")
+	if locale: where.append(u"locale = '" + locale + "'")
+	if start_date: where.append(u"date >= '" + start_date + "'")
+	if end_date: where.append(u"date <= '" + end_date + "'")
+	if where:
+		where = 'AND ' + ' AND '.join(where)
+	else:
+		where = ""
+	
+	#Next setup a query
+	query = """
+		SELECT
+			tile_id,
+			SUM (impressions) AS impressions,
+			SUM (clicks) AS clicks,
+			SUM (pinned) AS pins,
+			SUM (blocked) AS blocks
+		FROM
+			impression_stats_daily
+		INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
+		WHERE
+			tile_id in ({0})
+			{1}
+		GROUP BY tile_id
+	""".format(", ".join(all_yahoo_tile_ids), where)
+	
+	#execute it
+	print query
+	cursor.execute(query)
+	
+	#Now aggregate based on category
+	category_aggregate = {}
+	for row in cursor.fetchall():
+		category = id_to_category[unicode(row[0])]
+		data = row[1:]
+		if category not in category_aggregate:
+			category_aggregate[category] = data
+		else:
+			category_aggregate[category] = [sum(x) for x in zip(data, category_aggregate[category])]
+	
+	#now add in some extra metrics and format correctly
+	table_data = []
+	for cat, row_data in category_aggregate.iteritems():
+		
+		#insert the CTR
+		ctr = round((row_data[1] / float(row_data[0])) * 100, 5) if row_data[0] != 0 else 0
+		row_data.insert(2, ctr)
+		
+		#append the engagement
+		row_data.append(engagement(row_data[4], row_data[1]))
+		
+		#append the engagement grade
+		row_data.append(engagement_grade(row_data[-1]))
+		
+		table_data.append({
+				'name': cat,
+				'stats': row_data
+			})
+	
+	return table_data
+
 ######### Data transformations ###########
 
 def convert_impressions_data_for_graph(data):
@@ -1250,4 +1377,3 @@ def error_report(what):
 	server = SMTP(SERVER)
 	server.sendmail(FROM, TO, message)
 	server.quit()
-
