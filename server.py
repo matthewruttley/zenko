@@ -4,10 +4,12 @@
 #> python server.py
 #and then visit http://localhost:5000
 
+from json import dump, dumps
+from yaml import safe_load
 from datetime import datetime
 from pdb import set_trace
 from webbrowser import open as open_webpage
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, Response
 import redshift
 from pdb import set_trace
 app = Flask(__name__)
@@ -411,9 +413,86 @@ def engagement_testing():
 	
 	return render_template("engagement.html", clients=clients, client=client, impressions_data=impressions_data, column_headers=column_headers, time_unit=time_unit, impressions_data_graph=impressions_data_graph)
 
+@app.route('/get_yahoo_overview_data')
+def get_yahoo_overview_data():
+	"""Gets yahoo overview data (ajax request)"""
+	
+	data = {}
+	
+	#get and format yahoo tiles
+	tiles = redshift.get_tiles_per_client(cache, "Yahoo")
+	data['yahoo_filter'] = redshift.filter_yahoo_tiles(tiles)
+	all_yahoo_tile_ids = []
+	for x in data['yahoo_filter']['categories']:
+		all_yahoo_tile_ids += x[1].split(',')
+	
+	#set up query
+	query = """
+		SELECT tile_id, date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+		FROM impression_stats_daily
+		WHERE tile_id in ({0})
+		GROUP BY tile_id, date
+		ORDER BY date ASC
+	""".format(", ".join(all_yahoo_tile_ids))
+	
+	#grab dataset
+	print query
+	cursor.execute(query)
+	data['dataset'] = []
+	
+	#clean up dataset
+	print "Cleaning dataset"
+	for row in cursor.fetchall():
+		row = list(row)
+		row[1] = "{0}-{1}-{2}".format(row[1].year, row[1].month-1, row[1].day)
+		data['dataset'].append(row)
+	
+	return Response(dumps(data), mimetype='application/json')
+
 @app.route("/overview_interactive")
 def overview_interactive():
 	"""Testing version of an interactive overview"""
+	
+	#set up response
+	data = {}
+	data['clients'] = redshift.get_sponsored_client_list(cache)
+	#
+	##get and format yahoo tiles
+	#tiles = redshift.get_tiles_per_client(cache, "Yahoo")
+	#yahoo_filter = redshift.filter_yahoo_tiles(tiles)
+	#all_yahoo_tile_ids = []
+	#for x in yahoo_filter['categories']:
+	#	all_yahoo_tile_ids += x[1].split(',')
+	#
+	##set up query
+	#query = """
+	#	SELECT tile_id, date, SUM (impressions) AS impressions, SUM (clicks) AS clicks, SUM (pinned) AS pins, SUM (blocked) AS blocks
+	#	FROM impression_stats_daily
+	#	WHERE tile_id in ({0})
+	#	GROUP BY tile_id, date
+	#	ORDER BY date ASC
+	#""".format(", ".join(all_yahoo_tile_ids))
+	#
+	##grab dataset
+	#print query
+	#cursor.execute(query)
+	#data['dataset'] = []
+	#
+	##clean up dataset
+	#print "Cleaning dataset"
+	#for row in cursor.fetchall():
+	#	row = list(row)
+	#	row[1] = "{0}-{1}-{2}".format(row[1].year, row[1].month-1, row[1].day)
+	#	data['dataset'].append(row)
+	#
+	#with open('test_overview_interactive.json', 'w') as f:
+	#	print "Dumping dataset"
+	#	dump(data['dataset'], f)
+	
+	with open('test_overview_interactive.json') as f:
+		data['dataset'] =  safe_load(f)
+	
+	return render_template("overview_interactive.html", data=data)
 
 @app.route("/overview")
 def overview():

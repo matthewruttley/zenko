@@ -181,3 +181,26 @@ body {
 #yahoo_filter_container {
   visibility: hidden;
 }
+
+#spinner_dialog {
+  z-index: 100;
+  visibility: hidden;
+  position: absolute;
+  top: 250px;
+  left: 500px;
+  width: 600px;
+  height: 200px;
+  border: 3px solid teal;
+  text-align: center;
+  background-color: white;
+}
+
+#spinner_dialog img {
+  margin: 0 auto;
+}
+
+#spinner_table {
+  width: 100%;
+  margin: 0 auto;
+  text-align: center;
+}

@@ -127,13 +127,11 @@ function set_up_graphs(data){
 	//default impressions payload
 	default_impressions = []
 	for (var entry of Object.keys(graph_data)) {
-		if (entry.indexOf('impressions')!=-1) {
 			default_impressions.push({
 				'name': entry,
 				'yAxis': 0,
 				'data': graph_data[entry]
 			})
-		}
 	}
 	
 	$('#category_graph_container').highcharts('StockChart', {
