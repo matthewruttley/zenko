@@ -4,6 +4,8 @@
 
 var original_columns = ['impressions', 'clicks', 'pins', 'blocks']
 var columns_with_metrics = ['impressions', 'clicks', 'ctr', 'pins', 'blocks', 'eng', 'eng_grade']
+//var data = false
+//var yahoo_filter = false
 
 //FUNCTIONALITY
 
@@ -14,6 +16,12 @@ function spinner_handler(command){
 	
 	if (command=='start') {
 		spinner_dialog.style.visibility = 'visible'
+		
+		//remove any existing rows in the spinner table
+		for (var c of spinner_table.childNodes) {
+			spinner_table.removeChild(c)
+		}
+		
 	}
 	else if (command=='end') {
 		spinner_dialog.style.visibility = 'hidden'
@@ -46,7 +54,23 @@ function get_data_from_server() {
 		{
 			spinner_handler('Parsing response')
 			response = JSON.parse(xmlhttp.responseText)
-			setup_page(response)
+			data = response.dataset
+			yahoo_filter = response.yahoo_filter
+			
+			//process data
+			spinner_handler('Formatting data')
+			data = process_data(data)
+			
+			//activate graphs
+			spinner_handler('Setting up graphs')
+			set_up_graphs(data)
+			
+			//fill table
+			spinner_handler('Filling out tables')
+			fill_table_based_on_date_range(data)
+			
+			//close spinner
+			spinner_handler('end')
 		}
 	}
 	xmlhttp.open("GET","/get_yahoo_overview_data", true);
@@ -54,7 +78,7 @@ function get_data_from_server() {
 }
 
 function setup_page(data) {
-	//parse the respons
+	//start the spinner if not already started
 	spinner_handler('start')
 	
 	//process data
@@ -63,7 +87,7 @@ function setup_page(data) {
 	
 	//activate graphs
 	spinner_handler('Setting up graphs')
-	//set_up_graphs(data)
+	set_up_graphs(data)
 	
 	//fill table
 	spinner_handler('Filling out tables')
@@ -76,24 +100,28 @@ function setup_page(data) {
 function set_up_graphs(data){
 	//Activate highcharts graphs
 	
-	
 	graph_data = {}
 	
 	//convert data into useful format for graphs
+	//currently in the format:
+	//	{
+	//		'auto_gen___imps': {
+	//			'029384701298374': 432
+	//		}
+	//	}
+	//and we need it in the format:
+	//	{
+	//		'auto_gen___imps': [
+	//			['029384701298374', 432]
+	//		]
+	//	}
+	
 	for (var cat of Object.keys(data)) {
+		tmp_list = []
 		for (var date of Object.keys(data[cat])) {
-			for (var x in data[cat][date]) {
-				total = data[cat][date][x]
-				column_name = columns[x]
-				key_name = cat + "_" + column_name
-				
-				if (graph_data.hasOwnProperty(key_name)===false) {
-					graph_data[key_name] = [[date, total]]
-				}else{
-					graph_data[key_name].push([date, total])
-				}
-			}
+			tmp_list.push([parseInt(date), data[cat][date]])
 		}
+		graph_data[cat] = tmp_list
 	}
 	
 	//default impressions payload
@@ -108,7 +136,7 @@ function set_up_graphs(data){
 		}
 	}
 	
-	$('#container').highcharts('StockChart', {
+	$('#category_graph_container').highcharts('StockChart', {
 		scrollbar: {enabled: true},
 		navigator: {enabled: true},
 		yAxis: [
@@ -118,11 +146,27 @@ function set_up_graphs(data){
 						min: 0,
 					},
 				],
+		xAxis: {
+			events: {
+				setExtremes: function(e) {
+					
+					ed = extract_date(Highcharts.dateFormat(null, e.min).toString().split()[0], reduce=true)
+					ld = extract_date(Highcharts.dateFormat(null, e.max).toString().split()[0], reduce=true)
+					
+					fill_table_based_on_date_range(
+						data,
+						earliest_date=ed,
+						latest_date=ld
+					)
+				}
+			}
+		},
 		series: default_impressions
 	});
 }
 
 function set_up_category_rows(data, earliest_date=false, latest_date=false) {
+	
 	//set + check parameters
 	if (earliest_date == false) {
 		earliest_date = Date.UTC(2014,8,1)
@@ -151,10 +195,8 @@ function set_up_category_rows(data, earliest_date=false, latest_date=false) {
 		
 		for (date of dates){
 			date_int = parseInt(date)
-			//console.log('category', category, "ld", latest_date, 'ed', earliest_date, 'date', date, date_int)
 			if ((date_int <= latest_date) && (date_int >= earliest_date)) {
 				if (data[category].hasOwnProperty(date)) {
-					//console.log('addition', category_rows[category_name][column_index], data[category][date][column_index])
 					category_rows[category_name][column_index] += data[category][date]
 				}
 			}
@@ -181,15 +223,13 @@ function set_up_category_rows(data, earliest_date=false, latest_date=false) {
 		category_rows[category] = row
 	}
 	
-	console.log('ping2')
-	
 	return category_rows
 }
 
 function fill_table_based_on_date_range(data, earliest_date=false, latest_date=false){
 	//Fill out each table cell with the correct data, potentially according to a date range
 	
-	data_rows = set_up_category_rows(data, earliest_date=false, latest_date=false)
+	data_rows = set_up_category_rows(data, earliest_date=earliest_date, latest_date=latest_date)
 	
 	category_table_container = document.getElementById('category_table_container')
 	if (category_table_container.children.length != 0) { //remove the table if it exists
@@ -204,7 +244,9 @@ function fill_table_based_on_date_range(data, earliest_date=false, latest_date=f
 	thead = document.createElement('thead')
 	header_row = document.createElement('tr')
 	header_cols = columns_with_metrics
-	header_cols.unshift('Category') //prepends the string
+	if (header_cols[0] != 'Category') {
+		header_cols.unshift('Category') //prepends the string
+	}
 	for (column of header_cols) {
 		cell = document.createElement('th')
 		//have to capitalize the column name
@@ -248,12 +290,22 @@ function fill_table_based_on_date_range(data, earliest_date=false, latest_date=f
 		body.appendChild(category_row)
 	}
 	
+	//Refresh the sortable-ness
+	$.bootstrapSortable()
 }
 
-function extract_date(date_string) {
+function extract_date(date_string, reduce=false) {
 	//converts a string date to a javascript date
 	d = date_string.split('-')
-	date = Date.UTC(parseInt(d[0]), parseInt(d[1]), parseInt(d[2]))
+	
+	//months are 0-11
+	if (reduce) {
+		month = parseInt(d[1]) - 1
+	}else{
+		month = parseInt(d[1])
+	}
+	
+	date = Date.UTC(parseInt(d[0]), month, parseInt(d[2]))
 	return date
 }
 
@@ -367,21 +419,3 @@ function process_data(data){
 	
 	return category_aggregate
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
