@@ -5,7 +5,6 @@
 #and then visit http://localhost:5000
 
 from json import dump, dumps
-from yaml import safe_load
 from datetime import datetime
 from pdb import set_trace
 from webbrowser import open as open_webpage
@@ -489,8 +488,8 @@ def overview_interactive():
 	#	print "Dumping dataset"
 	#	dump(data['dataset'], f)
 	
-	with open('test_overview_interactive.json') as f:
-		data['dataset'] =  safe_load(f)
+	#with open('test_overview_interactive.json') as f:
+	#	data['dataset'] =  safe_load(f)
 	
 	return render_template("overview_interactive.html", data=data)
 
