@@ -210,7 +210,7 @@ function set_up_category_rows(data, earliest_date=false, latest_date=false) {
 		
 		//calculate metrics
 		clickthrough = ctr(row[0], row[1])
-		eng = engagement(row[1], row[3])
+		eng = engagement(row[3], row[1])
 		eng_grade = engagement_grade(eng)
 		
 		//insert
