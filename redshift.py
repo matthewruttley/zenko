@@ -30,8 +30,18 @@ def cursor():
 	conn = psycopg2.connect(login_string)
 	return conn.cursor()
 
-def build_tiles_cache(cursor):
-	"""Saves a version of the tiles as JSON to the local directory. Only does this once every 24 hours"""
+def tile_cache_cursor():
+	"""Creates a new cursor which can access the new db with updated tile information"""
+	new_login_string = login_string.replace('tiles-prod-redshift.prod.mozaws.net', 'rds.tiles.prod.mozaws.net')
+	conn = psycopg2.connect(new_login_string)
+	return conn.cursor()
+
+def build_tiles_cache(cursor, cache_cursor):
+	"""Saves a version of the tiles as JSON to the local directory. Only does this once every 24 hours.
+	Needs two cursors:
+	 - One simple cursor to the main tiles db
+	 - Another to get updated tile information
+	"""
 	
 	#check if it actually needs updating
 	redownload = False
@@ -50,8 +60,8 @@ def build_tiles_cache(cursor):
 	if redownload:
 		print "Refreshing tiles cache from remote server (will take ~2 seconds)...",
 		#get the tiles
-		cursor.execute("SELECT * FROM tiles;")
-		tiles = cursor.fetchall()
+		cache_cursor.execute("SELECT * FROM tiles;")
+		tiles = cache_cursor.fetchall()
 		#get the countries
 		print "done"
 		
@@ -59,22 +69,6 @@ def build_tiles_cache(cursor):
 		#for each country for each tile. 
 		
 		countries = get_all_countries_from_server(cursor)
-		
-		#print "Refreshing tile country cache from remote server (could take up to ~29 seconds)..."
-		#cursor.execute("""
-		#	SELECT DISTINCT
-		#		tiles.id,
-		#		countries.country_name
-		#	FROM
-		#		tiles
-		#	INNER JOIN impression_stats_daily ON tiles.id = impression_stats_daily.tile_id
-		#	INNER JOIN countries ON countries.country_code = impression_stats_daily.country_code
-		#	ORDER BY
-		#		countries.country_name ASC;
-		#	""")
-		#tile_countries = defaultdict(set)
-		#for tile, country in cursor.fetchall():
-		#	tile_countries[tile].update([country])
 		
 		#now insert into a dictionary object that will be nicely serializeable
 		cache = {}
@@ -84,12 +78,12 @@ def build_tiles_cache(cursor):
 				'bg_color': tile[2],
 				'title': tile[3],
 				'type': tile[4],
-				'image_uri': tile[5],
-				'enhanced_image_uri': tile[6],
-				'locale': tile[7],
-				'created_at': unicode(tile[8]),
+				'locale': tile[5],
+				'adgroup_id': tile[6],
+				'image_uri': tile[7],
+				'enhanced_image_uri': tile[8],
+				'created_at': unicode(tile[9]),
 				'countries': countries
-				#'countries': sorted(list(tile_countries[tile[0]])) if tile[0] in tile_countries else []
 			}
 		cache['last_updated'] = unicode(datetime.now())
 		with copen('tiles.cache', 'w', 'utf8') as f:

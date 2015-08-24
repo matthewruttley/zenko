@@ -15,9 +15,10 @@ app = Flask(__name__)
 
 #set up database connection
 cursor = redshift.cursor()
-cache = redshift.build_tiles_cache(cursor)
+cache_cursor = redshift.tile_cache_cursor()
+cache = redshift.build_tiles_cache(cursor, cache_cursor)
 mozilla_tiles = redshift.build_mozilla_tile_list(cache)
-#import redshift;cursor=redshift.cursor();cache=redshift.build_tiles_cache(cursor);mozilla_tiles = redshift.build_mozilla_tile_list(cache)
+#import redshift;cursor=redshift.cursor();cache_cursor = redshift.tile_cache_cursor();cache=redshift.build_tiles_cache(cursor, cache_cursor);mozilla_tiles = redshift.build_mozilla_tile_list(cache)
 
 #Some custom filter stuff
 
