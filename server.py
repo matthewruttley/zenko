@@ -68,7 +68,7 @@ def show_daily_impressions():
 		if client == 'Mozilla':
 			if campaign: #special case since mozilla tiles are allowed to have particular campaigns
 				tiles = [x['ids'] for x in mozilla_tiles if x['name'] == campaign][0]
-				impressions_data = redshift.get_daily_impressions_data(cursor, tile_ids=tiles)
+				impressions_data = redshift.get_daily_impressions_data(cursor, cache, tile_ids=tiles)
 				meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles, campaign_name=campaign)
 				client = 'Mozilla'
 			else:
@@ -77,20 +77,20 @@ def show_daily_impressions():
 				for x in mozilla_tiles:
 					tiles += list(x['ids'])
 				
-				impressions_data = redshift.get_daily_impressions_data(cursor, tile_ids=tiles)
+				impressions_data = redshift.get_daily_impressions_data(cursor, cache, tile_ids=tiles)
 				meta_data = redshift.get_mozilla_meta_data(cache, mozilla_tiles)
 				client = 'Mozilla'
 		else:
 			if country:
 				if locale:
-					impressions_data = redshift.get_daily_impressions_data(cursor, client=client, country=country, locale=locale)
+					impressions_data = redshift.get_daily_impressions_data(cursor, cache, client=client, country=country, locale=locale)
 				else:
-					impressions_data = redshift.get_daily_impressions_data(cursor, client=client, country=country)
+					impressions_data = redshift.get_daily_impressions_data(cursor, cache, client=client, country=country)
 			else:
 				if locale:
-					impressions_data = redshift.get_daily_impressions_data(cursor, client=client, locale=locale)
+					impressions_data = redshift.get_daily_impressions_data(cursor, cache, client=client, locale=locale)
 				else:
-					impressions_data = redshift.get_daily_impressions_data(cursor, client=client)
+					impressions_data = redshift.get_daily_impressions_data(cursor, cache, client=client)
 			if locale:
 				meta_data = redshift.get_client_meta_data(cache, client=client, locale=locale)
 			else:
@@ -98,9 +98,9 @@ def show_daily_impressions():
 		specific_tile = False
 	else:
 		if country:
-			impressions_data = redshift.get_daily_impressions_data(cursor, tile_id=tile_id, tile_ids=tile_ids, country=country)
+			impressions_data = redshift.get_daily_impressions_data(cursor, cache, tile_id=tile_id, tile_ids=tile_ids, country=country)
 		else:
-			impressions_data = redshift.get_daily_impressions_data(cursor, tile_id=tile_id, tile_ids=tile_ids)
+			impressions_data = redshift.get_daily_impressions_data(cursor, cache, tile_id=tile_id, tile_ids=tile_ids)
 		
 		if tile_ids:
 			meta_data = redshift.get_tile_meta_data(cache, tile_ids)
