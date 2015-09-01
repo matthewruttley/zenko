@@ -958,7 +958,7 @@ def get_daily_impressions_data(cursor, cache, tile_id=False, client=False, count
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade, js_date])
 	return impressions
 
-def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_date=False, client=False, locale=False, tile_ids=False):
+def get_countries_impressions_data(cursor, cache, tile_id=False, start_date=False, end_date=False, client=False, locale=False, tile_ids=False):
 	"""Gets aggregated impressions grouped by each country. This is for the country-by-country analysis"""
 	
 	#construct WHERE clause using parameters
@@ -972,7 +972,7 @@ def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_
 	if client:
 		if client != 'Mozilla':
 			client_tile_ids = get_tile_ids_per_client(cache, client)
-			where.append(u"tile id in ({0})".format(", ".join(client_tile_ids)))
+			where.append(u"tile_id in ({0})".format(", ".join(client_tile_ids)))
 	if locale:
 		where.append(u"locale = '{0}'".format(locale))
 	if tile_ids:
@@ -1011,7 +1011,7 @@ def get_countries_impressions_data(cursor, tile_id=False, start_date=False, end_
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade]) #why doesn't insert() work
 	return impressions
 
-def get_locale_impressions_data(cursor, client=False, start_date=False, end_date=False, country=False, tile_id=False, tile_ids=False):
+def get_locale_impressions_data(cursor, cache, client=False, start_date=False, end_date=False, country=False, tile_id=False, tile_ids=False):
 	"""Get impressions data locale-by-locale"""
 	
 	print "Got:"
@@ -1029,7 +1029,7 @@ def get_locale_impressions_data(cursor, client=False, start_date=False, end_date
 	if client:
 		if client != 'Mozilla':
 			client_tile_ids = get_tile_ids_per_client(cache, client)
-			where.append(u"tile id in ({0})".format(", ".join(client_tile_ids)))
+			where.append(u"tile_id in ({0})".format(", ".join(client_tile_ids)))
 	if country:
 		where.append(u"country_name = '{0}'".format(country))
 	if tile_ids:
