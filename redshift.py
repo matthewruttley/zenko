@@ -25,23 +25,48 @@ verbose = False #debug setting
 
 ############# Basic caching and setup ##################
 
-def cursor():
-	"""Creates a cursor on the db for querying"""
-	conn = psycopg2.connect(login_string)
-	return conn.cursor()
+def query_database(query):
+	"""Creates a cursor, makes a query, closes the cursor, returns the data.
+	This is with the main impression_stats_database"""
+	
+	conn = psycopg2.connect(login_string) #make cursor
+	cursor = conn.cursor()
+	print query
+	cursor.execute(query) #query
+	data = cursor.fetchall() #get data
+	cursor.close() #close
+	
+	
+	return data
 
-def tile_cache_cursor():
-	"""Creates a new cursor which can access the new db with updated tile information"""
-	new_login_string = login_string.replace('tiles-prod-redshift.prod.mozaws.net', 'rds.tiles.prod.mozaws.net')
-	conn = psycopg2.connect(new_login_string)
-	return conn.cursor()
+def query_new_database(query):
+	"""Creates a cursor, makes a query, closes the cursor, returns the data.
+	This is with the second tiles database"""
+	
+	new_login_string = login_string.replace('tiles-prod-redshift.prod.mozaws.net', 'rds.tiles.prod.mozaws.net')	
+	conn = psycopg2.connect(login_string) #make cursor
+	cursor = conn.cursor()
+	print query
+	cursor.execute(query) #query
+	data = cursor.fetchall() #get data
+	cursor.close() #close
+	
+	return data
 
-def build_tiles_cache(cursor, cache_cursor):
-	"""Saves a version of the tiles as JSON to the local directory. Only does this once every 24 hours.
-	Needs two cursors:
-	 - One simple cursor to the main tiles db
-	 - Another to get updated tile information
-	"""
+def get_cursor_description(query):
+	"""Gets cursor description meta data"""
+	
+	conn = psycopg2.connect(login_string) #make cursor
+	cursor = conn.cursor()
+	print query
+	cursor.execute(query) #query
+	description = cursor.description
+	cursor.close() #close
+	
+	return description
+
+def build_tiles_cache():
+	"""Saves a version of the tiles as JSON to the local directory. Only does this once every 24 hours."""
 	
 	#check if it actually needs updating
 	redownload = False
@@ -60,15 +85,14 @@ def build_tiles_cache(cursor, cache_cursor):
 	if redownload:
 		print "Refreshing tiles cache from remote server (will take ~2 seconds)...",
 		#get the tiles
-		cache_cursor.execute("SELECT * FROM tiles;")
-		tiles = cache_cursor.fetchall()
+		tiles = query_new_database("SELECT * FROM tiles;")
 		#get the countries
 		print "done"
 		
 		#A quick fix to this problem is just to assume that there's an entry (even if blank)
 		#for each country for each tile. 
 		
-		countries = get_all_countries_from_server(cursor)
+		countries = get_all_countries_from_server()
 		
 		#now insert into a dictionary object that will be nicely serializeable
 		cache = {}
@@ -364,14 +388,16 @@ def build_mozilla_tile_list(cache):
 	
 	return mozilla_tiles
 
-def get_all_countries_from_server(cursor):
+def get_all_countries_from_server():
 	"""Gets a list of all countries in the database"""
 	
 	print "Refreshing a list of all countries from remote server (will take ~1 second)...",
+	
 	query = "SELECT country_name FROM countries"
-	cursor.execute(query)
+	data = query_database(query)
 	print "done"
-	countries = [x[0] for x in cursor.fetchall()]
+	
+	countries = [x[0] for x in data]
 	
 	return countries
 
@@ -613,7 +639,7 @@ def get_all_countries(cache):
 	countries = sorted(list(countries))
 	return countries
 
-def get_client_attributes(cursor, cache, client):
+def get_client_attributes(cache, client):
 	"""For a given tile id, gets all possible locales, countries and campaign start dates.
 	This is useful for the drop down menus.
 	Accepts an integer tile id and returns a dictionary of lists"""
@@ -659,7 +685,7 @@ def create_engagement_graph_data(impressions_data, time_unit):
 	
 	return graph_data
 
-def get_temporal_engagement(cursor, time_delimiter):
+def get_temporal_engagement(time_delimiter):
 	"""Daily overall engagement"""
 	
 	query = """
@@ -668,14 +694,13 @@ def get_temporal_engagement(cursor, time_delimiter):
 	GROUP BY date
 	ORDER BY date ASC
 	"""
-	print query
-	cursor.execute(query)
+	database_result = query_database(query)
 	
 	data = defaultdict(lambda: [0,0,0,0]) #impressions, blocks, clicks, engagement
 	
 	if time_delimiter == "monthly":
 		col_name = "Month"
-		for row in cursor.fetchall():
+		for row in database_result():
 			month = str(row[0].month)
 			if len(month) == 1:
 				month = "0"+str(month)
@@ -685,7 +710,7 @@ def get_temporal_engagement(cursor, time_delimiter):
 			data[formatted_date][2] += row[3]
 	elif time_delimiter == "weekly":
 		col_name = "Week"
-		for row in cursor.fetchall():
+		for row in database_result():
 			week = str(row[0].isocalendar()[1])
 			if len(week) == 1:
 				week = "0"+week
@@ -697,7 +722,7 @@ def get_temporal_engagement(cursor, time_delimiter):
 	else:
 		#daily
 		col_name = "Day"
-		for row in cursor.fetchall():
+		for row in database_result():
 			formatted_date = row[0].strftime("%Y-%m-%d")
 			data[formatted_date][0] += row[1]
 			data[formatted_date][1] += row[2]
@@ -785,7 +810,7 @@ def add_engagement_metrics(impressions_data):
 
 ########## Querying impressions data ###########
 
-def get_daily_impressions_data_for_engagement(cursor, client=False):
+def get_daily_impressions_data_for_engagement(client=False):
 	"""Gets aggregated impressions grouped by day for the engagement page, pulled from a cache"""
 	
 	#check cache
@@ -834,8 +859,7 @@ def get_daily_impressions_data_for_engagement(cursor, client=False):
 		""".format(client.lower())
 		
 		print "Creating engagement cache..."
-		cursor.execute(query)
-		data = cursor.fetchall()
+		data = query_database(query)
 		
 		impressions = {}
 		
@@ -863,7 +887,7 @@ def get_daily_impressions_data_for_engagement(cursor, client=False):
 			client = "Dashlane"
 		return impressions[client]
 
-def get_daily_impressions_data(cursor, cache, tile_id=False, client=False, country='all', locale=False, tile_ids=False):
+def get_daily_impressions_data(cache, tile_id=False, client=False, country='all', locale=False, tile_ids=False):
 	"""Gets aggregated impressions grouped by day"""
 	
 	if tile_ids:
@@ -943,9 +967,8 @@ def get_daily_impressions_data(cursor, cache, tile_id=False, client=False, count
 			ORDER BY impression_stats_daily.date ASC;
 			""".format(tile_id, country)
 	
-	print query
-	cursor.execute(query)
-	data = cursor.fetchall()
+	
+	data = query_database(query)
 	
 	#insert the CTR and a javascript formatted date
 	impressions = []
@@ -958,7 +981,7 @@ def get_daily_impressions_data(cursor, cache, tile_id=False, client=False, count
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade, js_date])
 	return impressions
 
-def get_countries_impressions_data(cursor, cache, tile_id=False, start_date=False, end_date=False, client=False, locale=False, tile_ids=False):
+def get_countries_impressions_data(cache, tile_id=False, start_date=False, end_date=False, client=False, locale=False, tile_ids=False):
 	"""Gets aggregated impressions grouped by each country. This is for the country-by-country analysis"""
 	
 	#construct WHERE clause using parameters
@@ -996,10 +1019,7 @@ def get_countries_impressions_data(cursor, cache, tile_id=False, start_date=Fals
 			GROUP BY countries.country_name
 			ORDER BY impressions DESC;
 	""".format(where)
-	print query
-	
-	cursor.execute(query)
-	data = cursor.fetchall()
+	data = query_database(query)
 	
 	#insert the CTR
 	impressions = []
@@ -1011,7 +1031,7 @@ def get_countries_impressions_data(cursor, cache, tile_id=False, start_date=Fals
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade]) #why doesn't insert() work
 	return impressions
 
-def get_locale_impressions_data(cursor, cache, client=False, start_date=False, end_date=False, country=False, tile_id=False, tile_ids=False):
+def get_locale_impressions_data(cache, client=False, start_date=False, end_date=False, country=False, tile_id=False, tile_ids=False):
 	"""Get impressions data locale-by-locale"""
 	
 	print "Got:"
@@ -1060,8 +1080,7 @@ def get_locale_impressions_data(cursor, cache, client=False, start_date=False, e
 	""".format(where)
 	print query
 	
-	cursor.execute(query)
-	data = cursor.fetchall()
+	data = query_database(query)
 	
 	#insert the CTR and a javascript formatted date
 	impressions = []
@@ -1074,7 +1093,7 @@ def get_locale_impressions_data(cursor, cache, client=False, start_date=False, e
 	
 	return impressions
 
-def get_country_impressions_data(cursor, country=False):
+def get_country_impressions_data(country=False):
 	"""Gets country impressions data for the 'countries' page. Not to be confused with the country-by-country analysis"""
 	
 	if country:
@@ -1090,9 +1109,7 @@ def get_country_impressions_data(cursor, country=False):
 				GROUP BY date
 				ORDER BY date"""
 	
-	print query
-	cursor.execute(query)
-	data = cursor.fetchall()
+	data = query_database(query)
 	
 	#insert the CTR and Engagement
 	impressions = []
@@ -1135,7 +1152,7 @@ def get_country_impressions_data(cursor, country=False):
 	
 	return js_data
 
-def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False, start_date=False, end_date=False):
+def get_overview_data(mozilla_tiles, cache, country=False, locale=False, start_date=False, end_date=False):
 	"""Grabs overview data"""
 	
 	#sort out the parameters
@@ -1164,9 +1181,7 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 		"""
 	
 	#grab the data from the server
-	print query
-	cursor.execute(query)
-	data = cursor.fetchall()
+	data = query_database(query)
 	
 	#enter each tile's data into a dictionary referenced by id
 	#this just makes things easier later when 
@@ -1255,7 +1270,7 @@ def get_overview_data(cursor, mozilla_tiles, cache, country=False, locale=False,
 	
 	return mozilla_tiles
 
-def get_yahoo_overview(cursor, yahoo_filter, country=False, locale=False, start_date=False, end_date=False):
+def get_yahoo_overview(yahoo_filter, country=False, locale=False, start_date=False, end_date=False):
 	"""Creates an overview of yahoo data"""
 	
 	#First need to create a full list of yahoo tile ids
@@ -1297,12 +1312,12 @@ def get_yahoo_overview(cursor, yahoo_filter, country=False, locale=False, start_
 	""".format(", ".join(all_yahoo_tile_ids), where)
 	
 	#execute it
-	print query
-	cursor.execute(query)
+	
+	database_result = query_database(query)
 	
 	#Now aggregate based on category
 	category_aggregate = {}
-	for row in cursor.fetchall():
+	for row in database_result:
 		category = id_to_category[unicode(row[0])]
 		data = row[1:]
 		if category not in category_aggregate:
@@ -1354,18 +1369,21 @@ def convert_impressions_data_for_graph(data):
 
 ######### Other SQLish meta-data #########
 
-def get_column_headers(cursor, table_name):
+def get_column_headers(table_name):
 	"""Gets the column headings for a table"""
-	cursor.execute("select * from " + table_name + " LIMIT 1;")
-	colnames = [desc[0] for desc in cursor.description]
+	
+	query = "select * from " + table_name + " LIMIT 1;"
+	description = get_cursor_description(query)
+	colnames = [desc[0] for desc in description]
 	return colnames
 
-def get_row_count(cursor, table_name):
+def get_row_count(table_name):
 	"""Gets the row count for a specific table.
 	Will be slow for big tables"""
 	print "Counting... (may take a while)"
-	cursor.execute("SELECT COUNT(*) FROM " + table_name + ";")
-	return cursor.fetchall()
+	
+	query = "SELECT COUNT(*) FROM " + table_name + ";"
+	return query_database(query)
 	
 ######### Auxiliary functionality #########
 
