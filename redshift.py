@@ -25,28 +25,29 @@ verbose = False #debug setting
 
 ############# Basic caching and setup ##################
 
-def query_database(query):
+def query_database(query, show_query=True):
 	"""Creates a cursor, makes a query, closes the cursor, returns the data.
 	This is with the main impression_stats_database"""
 	
 	conn = psycopg2.connect(login_string) #make cursor
 	cursor = conn.cursor()
-	print query
+	if show_query:
+		print query
 	cursor.execute(query) #query
 	data = cursor.fetchall() #get data
 	cursor.close() #close
 	
-	
 	return data
 
-def query_new_database(query):
+def query_new_database(query, show_query=True):
 	"""Creates a cursor, makes a query, closes the cursor, returns the data.
 	This is with the second tiles database"""
 	
 	new_login_string = login_string.replace('tiles-prod-redshift.prod.mozaws.net', 'rds.tiles.prod.mozaws.net')	
-	conn = psycopg2.connect(login_string) #make cursor
+	conn = psycopg2.connect(new_login_string) #make cursor
 	cursor = conn.cursor()
-	print query
+	if show_query:
+		print query
 	cursor.execute(query) #query
 	data = cursor.fetchall() #get data
 	cursor.close() #close
@@ -85,7 +86,7 @@ def build_tiles_cache():
 	if redownload:
 		print "Refreshing tiles cache from remote server (will take ~2 seconds)...",
 		#get the tiles
-		tiles = query_new_database("SELECT * FROM tiles;")
+		tiles = query_new_database("SELECT * FROM tiles;", show_query=False)
 		#get the countries
 		print "done"
 		
@@ -394,7 +395,7 @@ def get_all_countries_from_server():
 	print "Refreshing a list of all countries from remote server (will take ~1 second)...",
 	
 	query = "SELECT country_name FROM countries"
-	data = query_database(query)
+	data = query_database(query, show_query=False)
 	print "done"
 	
 	countries = [x[0] for x in data]
