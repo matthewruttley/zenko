@@ -421,8 +421,14 @@ def get_sponsored_client_list(cache):
 	"""Gets a list of clients and adds mozilla to the end"""
 	#get all tiles
 	clients = set()
+	
+	other_sponsored = [
+		"Yahoo",
+		"The Scene"
+	]
+	
 	for x in cache.itervalues():
-		if (x['type'] in "sponsored") or (x['title'] == "Yahoo"):
+		if (x['type'] in "sponsored") or (x['title'] in other_sponsored):
 			if "/" not in x['title']:
 				clients.update([x['title']])
 	
