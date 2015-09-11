@@ -121,6 +121,210 @@ def build_tiles_cache():
 	return cache
 
 def build_mozilla_tile_list(cache):
+	"""Finds conde tiles in the cache. This is complicated because there is currently no separate Advertiser/Client table.
+	Returns an object with them. This is a temporary fix until there is more time to abstract some of this functionality and create a separate
+	campaign payload. This is under construction but there are some deep unicode bugs (2015-09-11)"""
+	
+	mozilla_tiles = [
+		{
+			"name": "Webmaker Mobile App",
+			"url_must_match": [
+				"http://www.webmaker.org?ref=Webmaker_Launch&utm_campaign=Webmaker_Launch?utm_source=directory-tiles&utm_medium=tiles&utm_term=V1utm_campaign=Webmaker_Launch"
+			]
+		},
+		{
+			"name": "Make Firefox Your Default Browser",
+			"url_must_match": [
+				"https://support.mozilla.org/kb/make-firefox-your-default-browser?utm_source=directory-tiles&utm_medium=tiles&utm_content=DefaultV1&utm_campaign=Win10"
+			]
+		},
+		{
+			"name": "Privacy Tips",
+			"url_must_match": [
+				"https://www.mozilla.org/privacy/tips/?utm_source=directory-tiles&utm_medium=tiles&utm_content=PrivacyV1&utm_campaign=desktop"
+			]
+		},
+		{
+			"name": "Follow us on Twitter",
+			"url_must_match": [
+				"http://mzl.la/1U7wxPL", "http://mzl.la/1ILjvWb", "http://mzl.la/1KAsk2A"
+			]
+		},
+		{
+			"name": "Pocket for Firefox",
+			"url_must_match": [
+				"https://www.mozilla.org/firefox/pocket/?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop"
+			]
+		},
+		{
+			"name": "Newsletter_Directory",
+			"url_must_match": [
+				'https://www.mozilla.org/newsletter?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop'
+			]
+		},
+		{
+			"name": "Follow us on social",
+			"url_must_match": ['http://mzl.la/1Vg8Hmk', 'http://mzl.la/1Mdhxxu', 'http://mzl.la/1RGAtsX', 'http://mzl.la/1KdVzbh', 'http://mzl.la/1HC2Bps']
+		},
+		{
+			"name": "Foxyeah",
+			"url_must_match": [
+				"https://foxyeah.mozilla.org/?utm_source=directory-tiles&utm_medium=tiles&utm_campaign=sc-2015-foxyeah&utm_content=send-invite"
+			]
+		},
+		{
+			"name": "Foxyeah #2",
+			"url_must_match": ["http://mzl.la/1HqQv3A"]
+		},
+		{
+			"name": "Customize Firefox",
+			"url_must_match": ["fastestfirefox.com", "https://addons.mozilla.org/en-US/android/"]
+		},
+		{
+			"name": "Firefox 10th Anniversary",
+			"url_must_match": ["https://www.mozilla.com/firefox/independent/?utm_source=directory-tiles&utm_medium=directory-tiles&utm_campaign=FX10"]
+		},
+		{
+			'name': "Firefox for Android DT v1",
+			'url_must_match': ['https://play.google.com/store/apps/details?id=org.mozilla.firefox&referrer=utm_source%3Dmozilla%26utm_medium%3Dbanner%26utm_campaign%3Ddesktop01']
+		},
+		{
+			'name': "Firefox for Android DT v2",
+			'url_must_match': ["http://android.www.mozilla.com/firefox/android/?utm_source=directory-tiles&utm_medium=tiles&utm_campaign=sc-2015-fennec&utm_content=phone-in-hand"]
+		},
+		{
+			'name': "Firefox for Android ST",
+			'url_must_match': [
+				'https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=androidenthusiasts&utm_campaign=firefoxforandroid',
+				'https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=mobileproviders&utm_campaign=firefoxforandroid',
+				'https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=mozillafans&utm_campaign=firefoxforandroid'
+			]
+		},
+		{
+			"name": 'Firefox Help and Support',
+			"title_must_match": ['Firefox Help and Support'],
+		},
+		{
+			"name": "Firefox Marketplace",
+			"url_must_match": ['marketplace.firefox.com']
+		},
+		{
+			"name": "Firefox Sync",
+			"title_must_match": ["Firefox Sync"]
+		},
+		{
+			"name": "Firefox Hello",
+			"title_must_match": [
+				'Firefox Hello', 
+			]
+		},
+		{
+			"name": "Get Smart on Privacy",
+			'url_must_match': ['https://www.mozilla.com/privacy/tips?utm_source=firefox&utm_medium=directorytile&utm_campaign=DPD15']
+		},
+		{
+			"name": "Lightbeam",
+			"title_must_match": ['Lightbeam']
+		},
+		{
+			"name": "Mozilla",
+			"url_must_match": ["https://www.mozilla.com/en-US/?utm_source=directory-tiles&utm_medium=firefox-browser", "https://www.mozilla.org/en-US/?utm_source=directory-tiles&utm_medium=firefox-browser"]
+		},
+		{
+			"name": "Mozilla Advocacy",
+			"title_must_match": ["Mozilla Advocacy"]
+		},
+		{
+			"name": "Mozilla Community",
+			'url_must_match': ['http://contribute.mozilla.org/', 'http://mozilla.de/gemeinschaft/index.html']
+		},
+		{
+			"name": "MDN Suggested",
+			"url_must_match": [
+				"https://developer.mozilla.org/Learn?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_WebLearner",
+				"https://developer.mozilla.org/?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_Mozilla_Sites",
+				"https://developer.mozilla.org/?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_WebDev"
+			]
+		},
+		{
+			"name": "MDN Directory",
+			"url_must_match": [
+				"https://developer.mozilla.org/en-GB/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/en-US/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/es/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/pt-BR/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"*https://developer.mozilla.org/en-US/",
+				"https://developer.mozilla.org/ru/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/de/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/ja/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/pl/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/fr/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"*https://developer.mozilla.org/",
+				"*https://developer.mozilla.org",
+			]
+		},
+		{
+			"name": "Mozilla Festival",
+			"url_must_match": ["http://2014.mozillafestival.org/"]
+		},
+		{
+			"name": "Mozilla Manifesto",
+			"url_must_match": ["mozilla.org/about/manifesto", "https://www.mozilla.org/en-US/about/manifesto/"]
+		},
+		{
+			"name": "Privacy Principles",
+			'url_must_match': ["http://europe.mozilla.org/privacy/you"]
+		},
+		{
+			"name": "Protect Net Neutrality",
+			"title_must_match": ["Protect Net Neutrality"]
+		},
+		{
+			"name": "Support Mozilla",
+			"title_must_match": ["Support Mozilla"]
+		},
+		{
+			"name": "The Mozilla Project",
+			"title_must_match": ['The Mozilla Project']
+		},
+		{
+			"name": "The Open Standard",
+			'url_must_match': ['https://openstandard.mozilla.org/']
+		},
+		{
+			"name": "Webmaker",
+			'url_must_match': ["https://webmaker.org/"]
+		},
+		{
+			"name": '"A brand new tiles experience"',
+			'url_must_match': ['https://www.mozilla.com/firefox/tiles']
+		},
+		{
+			"name": "Stop Surveillance",
+			"title_must_match": ['Stop Surveillance']
+		},
+		{
+			"name": "Get smart on mass surveillance",
+			"title_must_match": ['Get smart on mass surveillance']
+		},
+		{
+			"name": "Fennec Tiles",
+			"id_must_match": ["629", "630", "631", "632"] #https://bugzilla.mozilla.org/show_bug.cgi?id=1131774
+		}
+	]
+	
+	#make sure ruleset is OK
+	if not tile_rules_are_valid(mozilla_tiles): return False
+	
+	#find matches
+	mozilla_tiles = find_matching_tiles(cache, mozilla_tiles)
+	
+	#check for errors
+	if not tile_selections_are_valid(cache, mozilla_tiles): return False
+	
+	return mozilla_tiles
+
+def build_mozilla_tile_list_old(cache):
 	"""Finds mozilla tiles in the cache. This is complicated because there is currently no separate Advertiser/Client table.
 	Returns an object with them"""
 	
@@ -388,6 +592,139 @@ def build_mozilla_tile_list(cache):
 						print "Warning! {0} are in {1} and {2}".format(same, tile['name'], other_tile['name'])
 	
 	return mozilla_tiles
+
+def tile_rules_are_valid(rules):
+	"""Checks that a tile rule set is valid"""
+	
+	error = False
+	
+	for x in rules:
+		for k, v in x.iteritems():
+			if k != 'name':
+				if type(v) != list: #everything apart from the name must have a list as the value
+					error = True; break			
+		if len(x.keys()) <= 1:
+			error = "No rule for {0}".format(x['name']); break
+
+	if error:
+		print "Error in ruleset! " + error
+		return False
+	else:
+		return True
+
+def find_matching_tiles(cache, ruleset):
+	"""Finds matching tiles according to a ruleset.
+	Attaches tile id lists to ruleset object"""
+	
+	#find matches
+	now = datetime.now()
+	ago = datetime(1900,1,1) #base date
+	
+	for rule_index in range(len(ruleset)):
+		ruleset[rule_index]['last_modified'] = ago
+		
+		ruleset[rule_index]['ids'] = [] #add container
+		test_count = len([y for y in ruleset[rule_index] if 'match' in y])
+
+		for tile_id, tile_info in cache.iteritems():
+			tests_passed = 0
+			if 'url_must_match' in ruleset[rule_index]:
+				for matcher in ruleset[rule_index]['url_must_match']:
+					if matcher.startswith('*'): #must be exact
+						if matcher[1:] == tile_info['target_url']:
+							tests_passed += 1
+							break
+					else:
+						if matcher in tile_info['target_url']:
+							tests_passed += 1
+							break
+			
+			if 'title_must_match' in ruleset[rule_index]:
+				for matcher in ruleset[rule_index]['title_must_match']:
+					if matcher in tile_info['title']:
+						tests_passed += 1
+						break
+			
+			if 'id_must_match' in ruleset[rule_index]:
+				for matcher in ruleset[rule_index]['id_must_match']:
+					if str(tile_id) == matcher:
+						tests_passed += 1 #hackish but works for:
+						break #https://bugzilla.mozilla.org/show_bug.cgi?id=1131774
+			
+			if tests_passed >= test_count:
+				ruleset[rule_index]['ids'].append(tile_id)
+				
+				#also put in last modified
+				created_at = datetime.strptime(tile_info['created_at'], "%Y-%m-%d %H:%M:%S.%f")
+				if created_at > ruleset[rule_index]['last_modified']:
+					ruleset[rule_index]['last_modified'] = created_at
+					ruleset[rule_index]['ago'] = human(created_at, precision=3, past_tense='{0} ago')
+		
+		ruleset[rule_index]['ids'] = set(ruleset[rule_index]['ids'])
+	
+	return ruleset
+
+def tile_selections_are_valid(cache, matched_tiles):
+	"""Checks for uncategorized or multiclassed tiles.
+	Matched tiles is a ruleset with added ids attribute to each rule object
+	outputs false if no errors, true if an error found"""
+	
+	#get sponsored tiles first so we know which ones to ignore
+	sponsored = set(get_sponsored_client_list(cache))
+	
+	#get a list of already categorized ids for easy lookup
+	already = set(chain.from_iterable([x['ids'] for x in matched_tiles if 'ids' in x]))
+	
+	#output what is left uncategorized
+	for tile_id, tile_info in cache.iteritems():
+		if tile_id not in already:
+			if tile_info['title'] not in sponsored:
+				if tile_info['type'] != 'organic':
+					print "Error! Not categorized!", tile_id, tile_info['title'], tile_info['target_url']
+					return False
+
+	#check that nothing was caught by more than one
+	if verbose:
+		for tile in matched_tiles:
+			for other_tile in matched_tiles:
+				if tile['name'] != other_tile['name']:
+					same = set(tile['ids']).intersection(other_tile['ids'])
+					if len(same) > 0:
+						print "Warning! {0} are in {1} and {2}".format(same, tile['name'], other_tile['name'])
+						return False
+	
+	return True
+
+def build_conde_tile_list(cache):
+	"""Finds conde tiles in the cache. This is complicated because there is currently no separate Advertiser/Client table.
+	Returns an object with them. This is a temporary fix until there is more time to abstract some of this functionality and create a separate
+	campaign payload. This is under construction but there are some deep unicode bugs (2015-09-11)"""
+	
+	conde_tiles = [
+		{
+			"name": "Wired",
+			"title_must_match": [
+				"Wired"
+			]
+		},
+		{
+			"name": "The Scene",
+			"title_must_match": [
+				"The Scene"
+			]
+		}
+	]
+	
+	#make sure ruleset is OK
+	if not tile_rules_are_valid(conde_tiles): return False
+	
+	#find matches
+	conde_tiles = find_matching_tiles(cache, conde_tiles)
+	
+	#check for errors
+	if not tile_selections_are_valid(cache, conde_tiles): return False
+	
+	return conde_tiles
 
 def get_all_countries_from_server():
 	"""Gets a list of all countries in the database"""
