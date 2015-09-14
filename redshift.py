@@ -407,12 +407,16 @@ def tile_selections_are_valid(cache, matched_tiles):
 	already = set(chain.from_iterable([x['ids'] for x in matched_tiles if 'ids' in x]))
 	
 	#output what is left uncategorized
+	uncategorized = []
 	for tile_id, tile_info in cache.iteritems():
 		if tile_id not in already:
 			if tile_info['title'] not in sponsored:
 				if tile_info['type'] != 'organic':
-					print "Error! Not categorized!", tile_id, tile_info['title'], tile_info['target_url']
-					return False
+					uncategorized.append(tile_id)
+	
+	if uncategorized:
+		print "Error: Uncategorized tiles. Please email/IRC message mruttley@mozilla.com to have them integrated ASAP."#, uncategorized #tile_id, tile_info['title'], tile_info['target_url']
+		return False
 
 	#check that nothing was caught by more than one
 	if verbose:
