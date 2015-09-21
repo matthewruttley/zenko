@@ -100,7 +100,7 @@ def build_tiles_cache(force_redownload=False):
 			try:
 				cache = cPickle.load(f)
 			except Exception:
-				os.remove('tiles.cache') #best I can do
+				remove('tiles.cache') #best I can do
 				print "Zenko updated to version 2.0! Please restart to see the new interface." 
 				exit()
 	
