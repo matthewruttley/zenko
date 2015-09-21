@@ -1,0 +1,88 @@
+{% extends 'main_template.html' %}
+
+{%block content%}
+
+    <br>
+    <br>
+
+    {% if data.campaigns %}
+        
+        <!-- entire client -->
+        <div class='row'>
+            <div class='col-md-10 col-md-offset-1'>
+                <button class='btn btn-primary' onclick="location.href='/impressions?client={{data.client}}&pivot=date'">View all {{data.client}} data on the same graph</button>
+                <br><br>
+            </div>
+        </div>
+        
+        <!-- Overview area -->
+        {% if data.campaigns|length > 1 %}
+        <div class='row'>
+            <div class='col-md-10 col-md-offset-1'>
+                <table class='table table-striped table-hover sortable'>
+                    <thead>
+                        <th>Campaign</th>
+                        <th>Actions</th>
+                        <th># of Tiles</th>
+                        <th># of Locales</th>
+                        <th data-defaultsort="desc">Last Modified</th>
+                    </thead>
+                    <tbody>
+                    {% for campaign_name, info in data.metadata.iteritems() %}
+                        <tr>
+                            <td>{{campaign_name}}</td>
+                            <td>
+                                <a role="button" class='btn btn-default' href='/impressions?pivot=date&client={{data.client}}&campaign={{campaign_name}}'>Show compiled data</a>&nbsp;
+                                <a role="button" class='btn btn-default' href='#{{campaign_name}}'>Select a specific tile</a>
+                            </td>
+                            <td>{{info.tile_count}}</td>
+                            <td>{{info.locale_count}}</td>
+                            <td>{{info.last_modified}}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        {% endif %}
+        
+        <!-- Individual selection -->
+        
+        {% for campaign_name, tiles in data.campaigns.iteritems() %}
+        <div class='row'>
+            <div class='col-md-10 col-md-offset-1'>
+                {% if campaign_name != 'Uncategorized' %}
+                <a class='jump_point' name='{{campaign_name}}'></a>
+                <h3>Campaign: {{ campaign_name }}</h3>
+                {% endif %}
+                <div class="table-responsive">
+                    <table class='table table-striped table-hover sortable'>
+                        <thead>
+                            <th></th>
+                            <th>Tile ID</th>
+                            <th>Title</th>
+                            <th>Target URL</th>
+                            <th>Locale</th>
+                            <th data-defaultsort="desc">Campaign Start Date</th>
+                        </thead>
+                        <tbody>
+                        {% for tile in tiles %}
+                            <tr>
+                                <td><input type="checkbox" onclick='multiple_tile_selection("{{tile.id}}")' class='multicheck' id='select_{{tile.id}}'></td>
+                                <td><a href="/impressions?pivot=date&id={{tile.id}}">{{tile.id}}</a></td>
+                                <td>{{tile.title}}</td>
+                                <td>{{tile.target_url}}</td>
+                                <td>{{tile.locale}}</td>
+                                <td>{{tile.created_at}}</td>
+                            </tr>
+                        {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    
+    {% endif %}
+
+{% endblock %}

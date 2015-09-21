@@ -1,37 +1,65 @@
 //Page functionality
 //Mostly things like AJAX requests
 
-function get_creative() {
-	//redirects to a page with the correct url for getting the right creative
-	var client_name = document.getElementById('tile_name').textContent
-	var locale = document.getElementById('locales').value
-	location.href = "/tile?client=" + client_name + "&locale=" + locale
-}
-
-function filter_creative_by_country() {
-	//filters an impressions page by country
-	var country = document.getElementById('countries').value
-	if (location.href.indexOf('client=')!=-1) { //particular client
-		var tile_name = document.getElementById('tile_name').textContent
-		if (location.href.indexOf('locale=')!=-1) { //does it include locale as well?
-			var locale = document.getElementById("locale").textContent
-			location.href = "/daily_impressions?client=" + tile_name + "&country=" + country + "&locale=" + locale
-		}else{
-			location.href = "/daily_impressions?client=" + tile_name + "&country=" + country
+function refresh_cache() {
+	//refreshes the cache
+	send_message("Refreshing the cache... (will take about 5 seconds)", "info")
+	xmlhttp=new XMLHttpRequest();
+	xmlhttp.onreadystatechange=function(){
+		if (xmlhttp.readyState==4 && xmlhttp.status==200){
+			send_message(JSON.parse(xmlhttp.responseText).message, "success")
 		}
-	}else{
-		var tile_id = document.getElementById('tile_id').textContent
-		location.href = "/daily_impressions?tile_id=" + tile_id + "&country=" + country
 	}
+	xmlhttp.open("GET","/refresh_cache", true);
+	xmlhttp.send();
 }
 
-function filter_lbl_by_country(){
+function send_message(message, type) {
+	//sends a message using the alert api
+
+	div = document.createElement("div")
+	div.className = "alert alert-" + type + " alert-dismissable fade-in"
+	div.role = "alert"
+	div.style.marginTop = "10px"
+	
+	button = document.createElement("button")
+	button.type = "button"
+	button.className = "close"
+	button.setAttribute('data-dismiss', 'alert')
+	button.setAttribute('aria-label', "Close")
+	
+	x = document.createElement("span")
+	x.setAttribute('aria-hidden', 'true')
+	
+	xtext = document.createTextNode('×')
+	
+	text = document.createTextNode(message)
+	
+	div.appendChild(button)
+	button.appendChild(x)
+	x.appendChild(xtext)
+	div.appendChild(text)
+	
+	area = document.getElementById('content_area')
+	area.insertBefore(div, area.firstChild)
+}
+
+function filter_impressions(){
 	//filters locale-by-locale page by country and/or date slider
+	
+	redirect = location.href
 	
 	//get start and end
 	var chosen_values = $("#slider").dateRangeSlider("values")
 	start_date = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")
 	end_date = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
+	
+	redirect += "&start_date=" + start_date + "&end_date=" + end_date
+	
+	var country = document.getElementById('countries')
+	if (country != "All Countries") {
+		redirect += "&country=" + country
+	}
 	
 	if (location.href.indexOf('client=')!=-1) { //particular client
 		if (location.href.indexOf('client=Mozilla')!=-1) {
@@ -47,7 +75,7 @@ function filter_lbl_by_country(){
 		}
 	}else{ //particular tile
 		var tile_id = document.getElementById('tile_id').textContent
-		redirect = "/locale_impressions?tile_id=" + tile_id + "&start_date=" + start_date + "&end_date=" + end_date
+		redirect = "/locale_impressions?tile_id=" + tile_id + 
 	}
 	
 	country = document.getElementById("countries").value
