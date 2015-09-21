@@ -97,7 +97,12 @@ def build_tiles_cache(force_redownload=False):
 		
 		#just load the cache from the local folder
 		with open(cache_file_location) as f:
-			cache = cPickle.load(f)
+			try:
+				cache = cPickle.load(f)
+			except Exception:
+				os.remove('tiles.cache') #best I can do
+				print "Zenko updated to version 2.0! Please restart to see the new interface." 
+				exit()
 	
 	return cache
 
@@ -200,9 +205,13 @@ def get_all_countries_from_server():
 	
 	query = "SELECT * FROM countries"
 	data = query_database(query, show_query=False)
-	print "done"
+
+	countries = {
+		"code_to_country": {x[1]:x[0] for x in data},
+		"country_to_code": {x[0]:x[1] for x in data}
+	}
 	
-	countries = {x[0]:x[1] for x in data}
+	print "done"
 	
 	return countries
 
@@ -423,10 +432,12 @@ def get_impressions_data(cache, pivot, selectors, start_date=False, end_date=Fal
 	
 	#optionally add country to where clause
 	countries = ""
-	if 'country' in selectors:
-		if type(selectors['country']) == list:
-			selectors['country'] = ",".join(selectors['country'])
-		countries = "AND country_code in ({0})".format(selectors['country'])
+	if pivot == 'country_name':
+		pivot = 'country_code'
+	
+	if 'country_name' in selectors:
+		countries = ['"{0}"'.format(cache['countries']['country_to_code'][x]) for x in selectors['country_name']]
+		countries = "AND country_code in ({0})".format(", ".join(countries))
 	
 	#optionally add in dates
 	dates = ""
@@ -455,10 +466,18 @@ def get_impressions_data(cache, pivot, selectors, start_date=False, end_date=Fal
 	for day in data:
 		day = list(day)
 		ctr = round((day[2] / float(day[1])) * 100, 5) if day[1] != 0 else 0
+		
 		if pivot == 'date':
 			js_date = "Date.UTC({0}, {1}, {2})".format(day[0].year, day[0].month, day[0].day)
 		else:
 			js_date = False
+		
+		if pivot == 'country_code':
+			if day[0] in cache['countries']['code_to_country']:
+				day[0] = cache['countries']['code_to_country'][day[0]]
+			else:
+				day[0] = "Error/Possible Spam"
+		
 		eng = engagement(day[4], day[2])
 		egrade = engagement_grade(eng)
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade, js_date])

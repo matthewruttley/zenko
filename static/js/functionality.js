@@ -47,6 +47,9 @@ function send_message(message, type) {
 function filter_impressions(){
 	//filters locale-by-locale page by country and/or date slider
 	
+	alert("Feature available very soon!")
+	return true
+	
 	redirect = location.href
 	
 	//get start and end

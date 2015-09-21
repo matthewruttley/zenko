@@ -38,7 +38,7 @@ def show_impressions():
 	
 	#get cached data
 	data['clients'] = redshift.get_tile_data(cache, attributes=['client', 'status'], sort='client')
-	data['countries'] = sorted(cache['countries'].keys())
+	data['countries'] = sorted(cache['countries']['country_to_code'].keys())
 	
 	#get pivot
 	data['pivot'] = request.args.get('pivot')
