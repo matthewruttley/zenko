@@ -1,4 +1,94 @@
 {
+	"FedEx": {
+		"All campaigns": {
+			"title_must_match": ["FedEx"]
+		}
+	},
+	"YouTube": {
+		"All campaigns": {
+			"title_must_match": ["YouTube"]
+		}
+	},
+	"PagesJaunes": {
+		"All campaigns": {
+			"title_must_match": ["PagesJaunes"]
+		}
+	},
+	"CVS": {
+		"All campaigns": {
+			"title_must_match": ["CVS Health"]
+		}
+	},
+	"BBC": {
+		"All campaigns": {
+			"title_must_match": ["BBC"]
+		}
+	},
+	"Facebook": {
+		"All campaigns": {
+			"title_must_match": ["Facebook"]
+		}
+	},
+	"Outbrain": {
+		"All campaigns": {
+			"title_must_match": ["Outbrain Sphere"]
+		}
+	},
+	"Wikipedia": {
+		"All campaigns": {
+			"title_must_match": ["Wikipedia"]
+		}
+	},
+	"Trulia": {
+		"All campaigns": {
+			"title_must_match": ["Trulia"]
+		}
+	},
+	"Amazon": {
+		"All campaigns": {
+			"title_must_match": ["Amazon"]
+		}
+	},
+	"CITIZENFOUR": {
+		"All campaigns": {
+			"title_must_match": ["CITIZENFOUR"]
+		}
+	},
+	"Booking.com": {
+		"All campaigns": {
+			"title_must_match": ["Booking.com"]
+		}
+	},
+	"Casper": {
+		"All campaigns": {
+			"title_must_match": ["Casper"]
+		}
+	},
+	"NFL": {
+		"All campaigns": {
+			"title_must_match": ["NFL"]
+		}
+	},
+	"Dashlane": {
+		"All campaigns": {
+			"title_must_match": ["Dashlane"]
+		}
+	},
+	"Yahoo": {
+		"All campaigns": {
+			"title_must_match": ["Yahoo"]
+		}
+	},
+	"Squarespace": {
+		"All campaigns": {
+			"title_must_match": ["Squarespace"]
+		}
+	},
+	"Quartz": {
+		"All campaigns": {
+			"title_must_match": ["Quartz"]
+		}
+	},
 	"Disconnect": {
 		"Get Disconnect": {
 			"title_must_match": ["Get Disconnect"]
@@ -35,6 +125,12 @@
 		}
 	},
 	"Mozilla": {
+		"Firefox Add-ons": {
+			"target_url_must_match": ["https://addons.mozilla.org/firefox/?utm_source=directory-tiles&utm_medium=tiles&utm_content=Generaladdons"]
+		},
+		"Mozilla Gear": {
+			"title_must_match": ["Mozilla Gear"]
+		},
 		"Webmaker Mobile App": {
 			"target_url_must_match": [
 				"http://www.webmaker.org?ref=Webmaker_Launch&utm_campaign=Webmaker_Launch?utm_source=directory-tiles&utm_medium=tiles&utm_term=V1utm_campaign=Webmaker_Launch"
