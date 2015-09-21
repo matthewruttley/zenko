@@ -56,7 +56,7 @@ def show_impressions():
 	#convert the data to be graph-able
 	if data['pivot'] == 'date':
 		data['graph'] = redshift.convert_impressions_data_for_graph(data['impressions'])
-		data['summary'] = ["Imps", "Clicks", "CTR", "Blocks", "Pins"]
+		data['summary'] = ["Impressions", "Clicks", "CTR", "Blocks", "Pins"]
 	
 	#insert an error message if needed
 	data['error'] = False

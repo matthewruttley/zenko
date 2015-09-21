@@ -179,8 +179,10 @@ def build_tiles_database(data):
 						new_entry['client'], new_entry['campaign'] = match
 		
 		if 'client' not in new_entry:
-			new_entry['client'] = new_entry['title']
-			new_entry['campaign'] = False
+			print u"Uncategorized! {0} - {1} - {2}".format(new_entry['id'], new_entry['title'], new_entry['target_url'])
+			continue
+			#new_entry['client'] = new_entry['title']
+			#new_entry['campaign'] = False
 		
 		if new_entry['client'] in statuses:
 			new_entry['status'] = statuses[new_entry['client']]
@@ -368,6 +370,8 @@ def get_overview_impressions_data(cache):
 	client	campaign	imps	clicks	pins	blocks
 	mozilla	x
 	
+	temp fix
+	
 	"""
 	
 	
@@ -409,13 +413,6 @@ def get_overview_impressions_data(cache):
 			line = gname + "\t" + u"\t".join([unicode(x) for x in data[0]])
 			
 			f.write(line + u"\n")
-	
-	
-	
-	
-	
-	
-
 
 def get_impressions_data(cache, pivot, selectors, start_date=False, end_date=False):
 	"""Makes a sql query and gets impressions data"""

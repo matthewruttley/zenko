@@ -56,7 +56,7 @@
         <div class='col-md-8 col-md-offset-2'>
             <div id='control_box'>
                 <form action="">
-                    {% for field in impressions_data_graph %}
+                    {% for field in data.graph %}
                     <label class="checkbox-inline">
                         <input type="checkbox" class='choice' id="{{field.0}}" name="{{field.0}}" value="{{field.0}}" checked> {{field.0}}
                     </label>
@@ -149,6 +149,8 @@
             }
         });
     });
+    
+    setSummaryBoxValues(0,0); //initialize the summary box
     
 </script>
 {% else %}
