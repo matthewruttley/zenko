@@ -1,0 +1,283 @@
+{
+	"FedEx": {
+		"All campaigns": {
+			"title_must_match": ["FedEx"]
+		}
+	},
+	"YouTube": {
+		"All campaigns": {
+			"title_must_match": ["YouTube"]
+		}
+	},
+	"PagesJaunes": {
+		"All campaigns": {
+			"title_must_match": ["PagesJaunes"]
+		}
+	},
+	"CVS": {
+		"All campaigns": {
+			"title_must_match": ["CVS Health"]
+		}
+	},
+	"BBC": {
+		"All campaigns": {
+			"title_must_match": ["BBC"]
+		}
+	},
+	"Facebook": {
+		"All campaigns": {
+			"title_must_match": ["Facebook"]
+		}
+	},
+	"Outbrain": {
+		"All campaigns": {
+			"title_must_match": ["Outbrain Sphere"]
+		}
+	},
+	"Wikipedia": {
+		"All campaigns": {
+			"title_must_match": ["Wikipedia"]
+		}
+	},
+	"Trulia": {
+		"All campaigns": {
+			"title_must_match": ["Trulia"]
+		}
+	},
+	"Amazon": {
+		"All campaigns": {
+			"title_must_match": ["Amazon"]
+		}
+	},
+	"CITIZENFOUR": {
+		"All campaigns": {
+			"title_must_match": ["CITIZENFOUR"]
+		}
+	},
+	"Booking.com": {
+		"All campaigns": {
+			"title_must_match": ["Booking.com"]
+		}
+	},
+	"Casper": {
+		"All campaigns": {
+			"title_must_match": ["Casper"]
+		}
+	},
+	"NFL": {
+		"All campaigns": {
+			"title_must_match": ["NFL"]
+		}
+	},
+	"Dashlane": {
+		"All campaigns": {
+			"title_must_match": ["Dashlane"]
+		}
+	},
+	"Yahoo": {
+		"All campaigns": {
+			"title_must_match": ["Yahoo"]
+		}
+	},
+	"Squarespace": {
+		"All campaigns": {
+			"title_must_match": ["Squarespace"]
+		}
+	},
+	"Quartz": {
+		"All campaigns": {
+			"title_must_match": ["Quartz"]
+		}
+	},
+	"Disconnect": {
+		"Get Disconnect": {
+			"title_must_match": ["Get Disconnect"]
+		},
+		"Descarga Disconnect": {
+			"title_must_match": ["Descarga Disconnect"]
+		}
+	},
+	"TurboTax": {
+		"TurboTax": {
+			"title_must_match": ["TurboTax"]
+		},
+		"ImpôtRapide": {
+			"title_must_match": ["ImpôtRapide"]
+		}
+	},
+	"Cars.com": {
+		"All Campaigns": {
+			"title_must_match": ["Cars.com", "cars.com"]
+		}
+	},
+	"Condé Nast": {
+		"Wired": {
+			"title_must_match": ["Wired", "WIRED"]
+		},
+		"The Scene": {
+			"title_must_match": ["The Scene"]
+		},
+		"Glamour": {
+			"title_must_match": ["Glamour"]
+		},
+		"Ars Technica": {
+			"title_must_match": ["Ars Technica"]
+		}
+	},
+	"Mozilla": {
+		"Firefox Add-ons": {
+			"target_url_must_match": ["https://addons.mozilla.org/firefox/?utm_source=directory-tiles&utm_medium=tiles&utm_content=Generaladdons"]
+		},
+		"Mozilla Gear": {
+			"title_must_match": ["Mozilla Gear"]
+		},
+		"Webmaker Mobile App": {
+			"target_url_must_match": [
+				"http://www.webmaker.org?ref=Webmaker_Launch&utm_campaign=Webmaker_Launch?utm_source=directory-tiles&utm_medium=tiles&utm_term=V1utm_campaign=Webmaker_Launch"
+			]
+		},
+		"Make Firefox Your Default Browser": {
+			"target_url_must_match": [
+				"https://support.mozilla.org/kb/make-firefox-your-default-browser?utm_source=directory-tiles&utm_medium=tiles&utm_content=DefaultV1&utm_campaign=Win10"
+			]
+		},
+		"Privacy Tips":{
+			"target_url_must_match": [
+				"https://www.mozilla.org/privacy/tips/?utm_source=directory-tiles&utm_medium=tiles&utm_content=PrivacyV1&utm_campaign=desktop"
+			]
+		},
+		"Follow us on Twitter": {
+			"target_url_must_match": [
+				"http://mzl.la/1U7wxPL", "http://mzl.la/1ILjvWb", "http://mzl.la/1KAsk2A"
+			]
+		},
+		"Pocket for Firefox": {
+			"target_url_must_match": [
+				"https://www.mozilla.org/firefox/pocket/?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop"
+			]
+		},
+		"Newsletter_Directory": {
+			"target_url_must_match": [
+				"https://www.mozilla.org/newsletter?utm_source=directory-tiles&utm_medium=tiles&utm_term=v1&utm_campaign=desktop"
+			]
+		},
+		"Follow us on social": {
+			"target_url_must_match": ["http://mzl.la/1Vg8Hmk", "http://mzl.la/1Mdhxxu", "http://mzl.la/1RGAtsX", "http://mzl.la/1KdVzbh", "http://mzl.la/1HC2Bps"]
+		},
+		"Foxyeah": {
+			"target_url_must_match": [
+				"https://foxyeah.mozilla.org/?utm_source=directory-tiles&utm_medium=tiles&utm_campaign=sc-2015-foxyeah&utm_content=send-invite"
+			]
+		},
+		"Foxyeah #2": {
+			"target_url_must_match": ["http://mzl.la/1HqQv3A"]
+		},
+		"Customize Firefox": {
+			"target_url_must_match": ["fastestfirefox.com", "https://addons.mozilla.org/en-US/android/"]
+		},
+		"Firefox 10th Anniversary": {
+			"target_url_must_match": ["https://www.mozilla.com/firefox/independent/?utm_source=directory-tiles&utm_medium=directory-tiles&utm_campaign=FX10"]
+		},
+		"Firefox for Android DT v1": {
+			"target_url_must_match": ["https://play.google.com/store/apps/details?id=org.mozilla.firefox&referrer=utm_source%3Dmozilla%26utm_medium%3Dbanner%26utm_campaign%3Ddesktop01"]
+		},
+		"Firefox for Android DT v2": {
+			"target_url_must_match": ["http://android.www.mozilla.com/firefox/android/?utm_source=directory-tiles&utm_medium=tiles&utm_campaign=sc-2015-fennec&utm_content=phone-in-hand"]
+		},
+		"Firefox for Android ST": {
+			"target_url_must_match": [
+				"https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=androidenthusiasts&utm_campaign=firefoxforandroid",
+				"https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=mobileproviders&utm_campaign=firefoxforandroid",
+				"https://www.mozilla.org/firefox/android/?utm_source=suggested-tiles&utm_medium=tiles&utm_content=mozillafans&utm_campaign=firefoxforandroid"
+			]
+		},
+		"Firefox Help and Support": {
+			"title_must_match": ["Firefox Help and Support"]
+		},
+		"Firefox Marketplace": {
+			"target_url_must_match": ["marketplace.firefox.com"]
+		},
+		"Firefox Sync": {
+			"title_must_match": ["Firefox Sync"]
+		},
+		"Firefox Hello": {
+			"title_must_match": [
+				"Firefox Hello"
+			]
+		},
+		"Get Smart on Privacy": {
+			"target_url_must_match": ["https://www.mozilla.com/privacy/tips?utm_source=firefox&utm_medium=directorytile&utm_campaign=DPD15"]
+		},
+		"Lightbeam": {
+			"title_must_match": ["Lightbeam"]
+		},
+		"Mozilla": {
+			"target_url_must_match": ["https://www.mozilla.com/en-US/?utm_source=directory-tiles&utm_medium=firefox-browser", "https://www.mozilla.org/en-US/?utm_source=directory-tiles&utm_medium=firefox-browser"]
+		},
+		"Mozilla Advocacy": {
+			"title_must_match": ["Mozilla Advocacy"]
+		},
+		"Mozilla Community": {
+			"target_url_must_match": ["http://contribute.mozilla.org/", "http://mozilla.de/gemeinschaft/index.html"]
+		},
+		"MDN Suggested": {
+			"target_url_must_match": [
+				"https://developer.mozilla.org/Learn?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_WebLearner",
+				"https://developer.mozilla.org/?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_Mozilla_Sites",
+				"https://developer.mozilla.org/?utm_campaign=default&utm_source=mozilla&utm_medium=firefox-suggested-tile&utm_content=MozCat_WebDev"
+			]
+		},
+		"MDN Directory": {
+			"target_url_must_match": [
+				"https://developer.mozilla.org/en-GB/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/en-US/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/es/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/pt-BR/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"=https://developer.mozilla.org/en-US/",
+				"https://developer.mozilla.org/ru/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/de/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/ja/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/pl/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"https://developer.mozilla.org/fr/?utm_source=mozilla&utm_medium=firefox-tile&utm_campaign=default",
+				"=https://developer.mozilla.org/",
+				"=https://developer.mozilla.org"
+			]
+		},
+		"Mozilla Festival": {
+			"target_url_must_match": ["http://2014.mozillafestival.org/"]
+		},
+		"Mozilla Manifesto": {
+			"target_url_must_match": ["mozilla.org/about/manifesto", "https://www.mozilla.org/en-US/about/manifesto/"]
+		},
+		"Privacy Principles": {
+			"target_url_must_match": ["http://europe.mozilla.org/privacy/you"]
+		},
+		"Protect Net Neutrality": {
+			"title_must_match": ["Protect Net Neutrality"]
+		},
+		"Support Mozilla": {
+			"title_must_match": ["Support Mozilla"]
+		},
+		"The Mozilla Project": {
+			"title_must_match": ["The Mozilla Project"]
+		},
+		"The Open Standard": {
+			"target_url_must_match": ["https://openstandard.mozilla.org/"]
+		},
+		"Webmaker": {
+			"target_url_must_match": ["https://webmaker.org/"]
+		},
+		"A brand new tiles experience": {
+			"target_url_must_match": ["https://www.mozilla.com/firefox/tiles"]
+		},
+		"Stop Surveillance": {
+			"title_must_match": ["Stop Surveillance"]
+		},
+		"Get smart on mass surveillance": {
+			"title_must_match": ["Get smart on mass surveillance"]
+		},
+		"Fennec Tiles": {
+			"id_must_match": [629, 630, 631, 632]
+		}
+	}
+}

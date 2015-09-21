@@ -1,0 +1,248 @@
+{% extends 'main_template.html' %}
+
+{%block content%}
+
+<div class='row'>
+    <div class='col-md-10 col-md-offset-1'>
+        <h3>{{data.impressions_title}}</h3>
+    </div>
+</div>
+<br>
+
+<!-- Tabs -->
+
+<div class='row'>
+    <div class='col-md-10 col-md-offset-1'>
+        <ul class="nav nav-tabs">
+            <li role="presentation"{%if data.pivot == 'date' %} class="active"{% endif %}><a href="{{data.url}}&pivot=date">Daily Impressions</a></li>
+            <li role="presentation"{%if data.pivot == 'country_name' %} class="active"{% endif %}><a href="{{data.url}}&pivot=country_name">Country Impressions</a></li>
+            <li role="presentation"{%if data.pivot == 'locale' %} class="active"{% endif %}><a href="{{data.url}}&pivot=locale">Locale Impressions</a></li>
+        </ul>
+    </div>
+</div>
+
+<!-- Graph -->
+
+<!-- Components of Graph -->
+{% if data.pivot == 'date' %}
+
+<div class='col-md-10 col-md-offset-1'>
+    <div class='row'>
+        <div class='col-md-10'>
+            <div id="container" style="min-width: 310px; height: 400px; margin: 0 auto"></div>
+        </div>
+        <div class='col-md-2'>
+            <table class="table table-striped table-bordered" style='position:absolute;top:100px;'>
+                <thead>
+                    <tr>
+                        <th></th>
+                        <th>Total</th>
+                        <th>Average</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for field in data.summary %}
+                    <tr>
+                        <td>{{field}}</td>
+                        <td><span id='{{field|lower}}_summary'></span></td>
+                        <td><span id='{{field|lower}}_average'></span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    <div class='row'>
+        <div class='col-md-8 col-md-offset-2'>
+            <div id='control_box'>
+                <form action="">
+                    {% for field in data.graph %}
+                    <label class="checkbox-inline">
+                        <input type="checkbox" class='choice' id="{{field.0}}" name="{{field.0}}" value="{{field.0}}" checked> {{field.0}}
+                    </label>
+                    {% endfor %}
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+    
+<!-- Graph initialization -->
+
+<script>
+    
+    impressions_data = {
+      {% for field in data.graph %}
+        {{ field.0 }}: [
+            {% for datum in field.1 %}
+            [{{datum.0}}, {{datum.1}}],{% endfor %}
+        ],
+        {% endfor %}
+    }
+    
+    $(function() {
+        $('#container').highcharts('StockChart', {
+            chart: {
+                events: {
+                    addSeries: function(){
+                        set_checkbox_label_colors()
+                    }
+                }    
+            },
+            scrollbar: {
+                enabled: true
+            },
+            navigator: {
+                enabled: true
+            },
+            xAxis: {
+              events: {
+                setExtremes: function(e) {
+                  setSummaryBoxValues(e.min, e.max)
+                  showHideRows(Highcharts.dateFormat(null, e.min), Highcharts.dateFormat(null, e.max))
+                }
+              }
+            },
+            yAxis: {
+              min: 0
+            },
+            series: [
+            {% for field in data.graph %}
+            {
+                name: '{{ field.0 }}',
+                data: impressions_data['{{ field.0 }}']
+            },
+            {% endfor %}
+            ]
+        }, function(){
+            //when the chart loads, set the colors of the checkbox labels
+            //to the same as that of the lines
+            set_checkbox_label_colors()
+        });
+    
+        $('.choice').click(function() {
+
+            var chart = $('#container').highcharts();
+            var buttons = document.getElementsByClassName("choice")
+            
+            for (x=0;x<buttons.length;x++) {
+                
+                var isChecked = buttons[x].checked
+                var choice = buttons[x].value;
+                var exists = seriesExists(choice)
+                
+                if(isChecked && !exists){
+                    var series = chart.addSeries({
+                        name: choice,
+                        data: impressions_data[choice]
+                    });
+                    set_checkbox_label_colors();
+                }
+                if(!isChecked && exists){
+                    for (i=0;i<chart.series.length;i++) {
+                        if (chart.series[i].name == choice) {
+                            chart.series[i].remove()
+                        }
+                    }
+                    set_checkbox_label_colors();
+                }
+            }
+        });
+    });
+    
+    setSummaryBoxValues(0,0); //initialize the summary box
+    
+</script>
+{% else %}
+
+<!-- Show date slider -->
+<div class='row'>
+    <div class='col-md-10 col-md-offset-1'>
+        <br>
+        <div id="slider"></div>
+    </div>
+</div>
+
+<script>
+//<!--
+  $("#slider").dateRangeSlider(
+    {
+      defaultValues: {
+        min: new Date({{data.slider.start_value}}),
+        max: new Date({{data.slider.end_value}})
+      },
+      bounds: {
+        min: new Date({{data.slider.start_bound}}),
+        max: new Date({{data.slider.end_bound}})
+      }
+    }
+  );
+//-->
+</script>
+
+{% endif %}
+
+<!-- Selectors -->
+
+<div class='row'>
+    <div class="col-md-2 col-md-offset-3">
+        <br>
+        <div class="form-group">
+            <select class="form-control" id='countries'>
+                {% if data.country %}<option value="{{data.country}}">{{data.country}}</option>{% endif %}
+                <option value="All Countries">All Countries</option>
+                {% for country in data.countries %}
+                <option value="{{country}}">{{country}}</option>
+                {% endfor %}
+            </select>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <br>
+        <div class="form-group">
+            <button class='btn btn-primary' id='filter_impressions' onclick='filter_impressions()'>Filter</button>
+            <button class='btn' onclick='download_xls()'>Download for Excel</button>
+        </div>
+    </div>
+</div>
+
+<!-- Table -->
+
+<div class='row'>
+    <div class='col-md-10 col-md-offset-1'>
+        <div class="table-responsive">
+            <br>
+            <table class="table table-striped table-bordered sortable" id='impressions_table'>
+                <thead>
+                    <tr>
+                        <th>{{data.pivot|capitalize}}</th>
+                        <th>Impressions</th>
+                        <th>Clicks</th>
+                        <th>CTR</th>
+                        <th>Pins</th>
+                        <th>Blocks</th>
+                        <th>Engagement</th>
+                        <th>EGrade</th>
+                    </tr>
+                </thead>
+                <tbody>
+                {% for row in data.impressions %}
+                    <tr>
+                        <td{%if data.pivot == 'date'%} data-dateformat="YYYY-MM-DD"{%endif%}>{{row.0}}</td>
+                        <td data-value='{{row.1}}'>{{row.1|thousands}}</td>
+                        <td data-value='{{row.2}}'>{{row.2|thousands}}</td>
+                        <td>{{row.3}}</td>
+                        <td data-value='{{row.4}}'>{{row.4|thousands}}</td>
+                        <td data-value='{{row.5}}'>{{row.5|thousands}}</td>
+                        <td>{{row.6}}</td>
+                        <td>{{row.7}}</td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
