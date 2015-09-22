@@ -189,7 +189,7 @@
         <br>
         <div class="form-group">
             <select class="form-control" id='countries'>
-                {% if data.country %}<option value="{{data.country}}">{{data.country}}</option>{% endif %}
+                {% if data.country_name %}<option selected value="{{data.country_name}}">{{data.country_name}}</option>{% endif %}
                 <option value="All Countries">All Countries</option>
                 {% for country in data.countries %}
                 <option value="{{country}}">{{country}}</option>

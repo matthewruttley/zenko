@@ -44,49 +44,54 @@ function send_message(message, type) {
 	area.insertBefore(div, area.firstChild)
 }
 
+function get_pivot_type() {
+	pivot = location.href.split('pivot')
+	if (pivot.length > 1) {
+		pivot = pivot[1].split('&')[0]
+		return pivot
+	}
+	return false
+}
+
+function get_url_components(url){
+	url_blocks = url.split("?")
+	base_url = url_blocks[0]
+	query = url_blocks[1].split('&')
+	url_components = {}
+	for (kvpair in query) {
+		pair = query[kvpair]
+		pair = pair.split('=')
+		url_components[pair[0]] = pair[1]
+	}
+	return url_components
+}
+
+function construct_query_string(components) {
+	query = []
+	for (x in components) {
+		toList = [x, components[x]]
+		query.push(toList.join('='))
+	}
+	return query.join('&')
+}
+
 function filter_impressions(){
 	//filters locale-by-locale page by country and/or date slider
+	//builds the url bit by bit
 	
-	alert("Feature available very soon!")
-	return true
-	
-	redirect = location.href
+	url_components = get_url_components(location.href)
 	
 	//get start and end
 	var chosen_values = $("#slider").dateRangeSlider("values")
-	start_date = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")
-	end_date = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
+	url_components['start_date'] = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")
+	url_components['end_date'] = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
 	
-	redirect += "&start_date=" + start_date + "&end_date=" + end_date
-	
-	var country = document.getElementById('countries')
-	if (country != "All Countries") {
-		redirect += "&country=" + country
+	var country_option = document.getElementById('countries').value
+	if (country_option != "All Countries") {
+		url_components['country_name'] = country_option
 	}
 	
-	if (location.href.indexOf('client=')!=-1) { //particular client
-		if (location.href.indexOf('client=Mozilla')!=-1) {
-			redirect = "/locale_impressions?client=Mozilla&start_date=" + start_date + "&end_date=" + end_date
-			//get possible country
-			if (location.href.indexOf('country=')!=-1) { //kind of hackish, could be cleaned up in the future
-				country = location.href.split('country=')[1].split('&')[0]
-				redirect += "&country=" + country
-			}
-		}else{
-			var tile_name = document.getElementById('tile_name').textContent
-			redirect = "/locale_impressions?client=" + tile_name + "&start_date=" + start_date + "&end_date=" + end_date
-		}
-	}else{ //particular tile
-		var tile_id = document.getElementById('tile_id').textContent
-		redirect = "/locale_impressions?tile_id=" + tile_id + '' //TODO fix
-	}
-	
-	country = document.getElementById("countries").value
-	if (country != "All Countries") {
-		redirect += "&country=" + country
-	}
-	
-	location.href = redirect
+	location.href = '/impressions?' + construct_query_string(url_components)
 }
 
 function convert_table_to_array() {

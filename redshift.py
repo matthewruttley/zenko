@@ -423,7 +423,7 @@ def get_overview_impressions_data(cache):
 			
 			f.write(line + u"\n")
 
-def get_impressions_data(cache, pivot, selectors, start_date=False, end_date=False):
+def get_impressions_data(cache, pivot, selectors):
 	"""Makes a sql query and gets impressions data"""
 	
 	#find tiles according to selectors
@@ -436,17 +436,17 @@ def get_impressions_data(cache, pivot, selectors, start_date=False, end_date=Fal
 		pivot = 'country_code'
 	
 	if 'country_name' in selectors:
-		countries = ['"{0}"'.format(cache['countries']['country_to_code'][x]) for x in selectors['country_name']]
+		countries = ["'{0}'".format(cache['countries']['country_to_code'][x]) for x in selectors['country_name']]
 		countries = "AND country_code in ({0})".format(", ".join(countries))
 	
 	#optionally add in dates
 	dates = ""
-	if start_date or end_date:
+	if ('start_date' in selectors) or ('end_date' in selectors):
 		dates = []
-		if start_date:
-			dates.append("DATE >= " + start_date)
-		if end_date:
-			dates.append("DATE <= " + end_date)
+		if 'start_date' in selectors:
+			dates.append("DATE >= '" + list(selectors['start_date'])[0] + "'")
+		if 'end_date' in selectors:
+			dates.append("DATE <= '" + list(selectors['end_date'])[0] + "'")
 		dates = "AND " + " AND ".join(dates)
 	
 	query = """
@@ -481,6 +481,10 @@ def get_impressions_data(cache, pivot, selectors, start_date=False, end_date=Fal
 		eng = engagement(day[4], day[2])
 		egrade = engagement_grade(eng)
 		impressions.append([day[0], day[1], day[2], str(ctr)+"%", day[3], day[4], eng, egrade, js_date])
+	
+	if pivot == 'country_code':
+		impressions = sorted(impressions, key=lambda x: x[0])
+	
 	return impressions
 
 ######### Data transformations ###########

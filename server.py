@@ -44,6 +44,7 @@ def show_impressions():
 	data['pivot'] = request.args.get('pivot')
 	
 	#parse selectors
+	data['country_name'] = request.args.get('country_name')
 	data['selectors'] = redshift.parse_selectors(request.args)
 	
 	#get impressions data
@@ -200,7 +201,8 @@ def get_slider_parameters(meta_data, selectors):
 	#they will be in the format u"2015-08-01" if so
 	for position in ['start', 'end']:
 		if position + '_date' in selectors:
-			value = [int(x) for x in selectors[position + '_date'].split("-")]
+			entry = list(selectors[position + "_date"])[0]
+			value = [int(x) for x in entry.split("-")]
 			slider[position + '_value'] = "{0}, {1}, {2}".format(value[0], value[1]-1, value[2])
 		else:
 			slider[position + '_value'] = slider[position + '_bound']
