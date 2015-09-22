@@ -129,6 +129,7 @@ def show_main_page():
 def refresh_cache():
 	"""Refreshes the cache"""
 	
+	global cache
 	cache = redshift.build_tiles_cache(force_redownload=True)
 	return jsonify({'message':"Cache refreshed!"})
 	
