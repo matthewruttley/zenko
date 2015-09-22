@@ -82,9 +82,11 @@ function filter_impressions(){
 	url_components = get_url_components(location.href)
 	
 	//get start and end
-	var chosen_values = $("#slider").dateRangeSlider("values")
-	url_components['start_date'] = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")
-	url_components['end_date'] = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
+	if (location.href.indexOf('pivot=date')==-1) {
+		var chosen_values = $("#slider").dateRangeSlider("values")
+		url_components['start_date'] = [chosen_values.min.getFullYear(), chosen_values.min.getMonth()+1, chosen_values.min.getDate()].join("-")
+		url_components['end_date'] = [chosen_values.max.getFullYear(), chosen_values.max.getMonth()+1, chosen_values.max.getDate()].join("-")
+	}
 	
 	var country_option = document.getElementById('countries').value
 	if (country_option != "All Countries") {
