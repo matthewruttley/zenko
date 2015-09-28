@@ -1,4 +1,9 @@
 {
+	"CLIQZ": {
+		"All campaigns": {
+			"title_must_match": ["CLIQZ"]
+		}
+	},
 	"FedEx": {
 		"All campaigns": {
 			"title_must_match": ["FedEx"]
