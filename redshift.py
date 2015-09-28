@@ -185,9 +185,9 @@ def build_tiles_database(data):
 		
 		if 'client' not in new_entry:
 			print u"Uncategorized! {0} - {1} - {2}".format(new_entry['id'], new_entry['title'], new_entry['target_url'])
-			continue
-			#new_entry['client'] = new_entry['title']
-			#new_entry['campaign'] = False
+			new_entry['client'] = new_entry['title']
+			new_entry['campaign'] = False
+			#continue
 		
 		if new_entry['client'] in statuses:
 			new_entry['status'] = statuses[new_entry['client']]
@@ -195,7 +195,7 @@ def build_tiles_database(data):
 			new_entry['status'] = "current" #default to current tile
 		
 		data['data'][tile_index] = new_entry
-		
+	
 	return data['data']
 
 def get_all_countries_from_server():
